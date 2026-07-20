@@ -1,0 +1,45 @@
+"use client";
+
+import { SlidersHorizontal, Plus } from "lucide-react";
+
+export default function InventoryHeader() {
+  return (
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+      {/* Left */}
+      <div>
+
+        <p className="text-sm text-gray-500">
+          Main / Inventory
+        </p>
+
+        <h1 className="text-3xl font-bold text-gray-900 mt-1">
+          Stock Management
+        </h1>
+
+      </div>
+
+      {/* Right */}
+      <div className="flex flex-col sm:flex-row gap-3">
+
+        <button className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition">
+
+          <SlidersHorizontal size={18} />
+
+          Advanced Filters
+
+        </button>
+
+        <button className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
+
+          <Plus size={18} />
+
+          Add Item
+
+        </button>
+
+      </div>
+
+    </div>
+  );
+}
