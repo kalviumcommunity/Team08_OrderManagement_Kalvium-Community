@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  OWNER
+  MANAGER
+  AUDITOR
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(CUSTOMER)
+  createdAt    DateTime       @default(now())
+  orders       Order[]
+  inventoryLogs InventoryLog[]
+}
+
+model Product {
+  id           String         @id @default(uuid())
+  name         String
+  stock        Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  orderItems   OrderItem[]
+  inventoryLogs InventoryLog[]
+}
+
+model Order {
+  id           String         @id @default(uuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  customerName String         // Cache customer name for quick read
+  status       OrderStatus    @default(PENDING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+}
+
+model InventoryLog {
+  id               String   @id @default(uuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id])
+  ownerId          String?
+  owner            User?    @relation(fields: [ownerId], references: [id])
+  previousQuantity Int
+  newQuantity      Int
+  changeAmount     Int
+  reason           String
+  timestamp        DateTime @default(now())
+}
