@@ -1,9 +1,13 @@
 datasource db {
 <<<<<<< HEAD
+<<<<<<< HEAD
   provider = "sqlite"
 =======
   provider = "postgresql"
 >>>>>>> c14499a (feat(auth): add backend prisma schema, seed data, and NextAuth credentials routes)
+=======
+  provider = "sqlite"
+>>>>>>> 7d63e76 (Tested API)
   url      = env("DATABASE_URL")
 }
 
@@ -11,6 +15,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 enum Role {
@@ -27,16 +32,22 @@ enum OrderStatus {
 }
 
 >>>>>>> c14499a (feat(auth): add backend prisma schema, seed data, and NextAuth credentials routes)
+=======
+>>>>>>> 7d63e76 (Tested API)
 model User {
   id           String         @id @default(uuid())
   name         String
   email        String         @unique
   passwordHash String
 <<<<<<< HEAD
+<<<<<<< HEAD
   role         String         @default("CUSTOMER") // Role types: "CUSTOMER", "OWNER", "MANAGER", "AUDITOR"
 =======
   role         Role           @default(CUSTOMER)
 >>>>>>> c14499a (feat(auth): add backend prisma schema, seed data, and NextAuth credentials routes)
+=======
+  role         String         @default("CUSTOMER") // Role types: "CUSTOMER", "OWNER", "MANAGER", "AUDITOR"
+>>>>>>> 7d63e76 (Tested API)
   createdAt    DateTime       @default(now())
   orders       Order[]
   inventoryLogs InventoryLog[]
@@ -58,10 +69,14 @@ model Order {
   user         User           @relation(fields: [userId], references: [id])
   customerName String         // Cache customer name for quick read
 <<<<<<< HEAD
+<<<<<<< HEAD
   status       String         @default("PENDING") // Status types: "PENDING", "PREPARING", "READY"
 =======
   status       OrderStatus    @default(PENDING)
 >>>>>>> c14499a (feat(auth): add backend prisma schema, seed data, and NextAuth credentials routes)
+=======
+  status       String         @default("PENDING") // Status types: "PENDING", "PREPARING", "READY"
+>>>>>>> 7d63e76 (Tested API)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   items        OrderItem[]
