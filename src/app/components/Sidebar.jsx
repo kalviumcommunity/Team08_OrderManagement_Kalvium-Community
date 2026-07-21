@@ -81,15 +81,6 @@ export default function Sidebar() {
   <span>Inventory</span>
 </Link>
 
-          <button className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-gray-100 transition">
-            <span>📈</span>
-            <span className="hidden lg:inline">Reports</span>
-          </button>
-
-          <button className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-gray-100 transition">
-            <span>⚙️</span>
-            <span className="hidden lg:inline">Settings</span>
-          </button>
 
         </div>
       </div>
@@ -97,10 +88,7 @@ export default function Sidebar() {
       {/* Bottom Section */}
       <div className="p-4 lg:p-6">
 
-        <button className="w-full bg-indigo-600 hover:bg-indigo-700 transition text-white rounded-xl py-3 font-medium text-sm">
-          <span className="hidden lg:inline">+ New Order</span>
-          <span className="lg:hidden">+</span>
-        </button>
+       
 
         <div className="mt-6 flex items-center justify-center lg:justify-start gap-3">
 

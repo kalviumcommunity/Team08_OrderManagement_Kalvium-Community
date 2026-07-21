@@ -19,10 +19,6 @@ export default function Navbar() {
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
 
-        <button className="text-xl p-2 rounded-lg hover:bg-gray-100 transition">
-          💬
-        </button>
-
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold">
             AR

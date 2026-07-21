@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import OrdersHeader from "../components/orders/OrdersHeader";
 
 import OrderBoard from "../components/orders/OrderBoard";
-import FloatingButton from "../components/orders/FloatingButton";
+
 
 export default function OrdersPage() {
   return (
@@ -40,8 +40,6 @@ export default function OrdersPage() {
 
       </div>
 
-      {/* Floating Button */}
-      <FloatingButton />
 
     </div>
   );
