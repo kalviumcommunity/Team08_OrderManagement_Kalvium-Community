@@ -103,6 +103,45 @@ async function runApiTests() {
     }
   });
 
+  // 6. Test User Registration
+  await test("POST /api/auth/register (New User)", async () => {
+    const randomEmail = `user-${Math.floor(Math.random() * 100000)}@orderflow.com`;
+    const res = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Test User",
+        email: randomEmail,
+        password: "testpassword123",
+        role: "CUSTOMER",
+      }),
+    });
+
+    if (res.status !== 201) {
+      const errData = await res.json();
+      throw new Error(`Expected status 201, got ${res.status}: ${errData.error || ""}`);
+    }
+  });
+
+  // 7. Test Forgot Password
+  await test("POST /api/auth/forgot-password", async () => {
+    const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "admin@orderflow.com",
+      }),
+    });
+
+    if (res.status !== 200) {
+      throw new Error(`Expected status 200, got ${res.status}`);
+    }
+    const data = await res.json();
+    if (!data.debug || !data.debug.resetToken) {
+      throw new Error("Reset token not found in debug field");
+    }
+  });
+
   console.log(`\nSummary: ${passed} Passed, ${failed} Failed.`);
   if (failed > 0) process.exit(1);
 }
