@@ -37,9 +37,18 @@ async function main() {
     },
   });
 
+  // Seed default product
+  const product = await prisma.product.create({
+    data: {
+      name: "Default Product",
+      stock: 10,
+    },
+  });
+
   console.log("Seeded Users:");
   console.log("Admin:", admin.email);
   console.log("Customer:", customer.email);
+  console.log("Product:", product.name, `(ID: ${product.id}, Stock: ${product.stock})`);
 }
 
 main()
