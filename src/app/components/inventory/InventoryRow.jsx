@@ -49,12 +49,6 @@ export default function InventoryRow({
 
         <div className="flex items-center gap-3">
 
-          <img
-            src={image}
-            alt={product}
-            className="w-14 h-14 rounded-lg object-cover border"
-          />
-
           <div>
 
             <p className="font-semibold text-gray-800">
