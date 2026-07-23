@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Apple } from "lucide-react";
 import PasswordInput from "./PasswordInput";
 
 export default function LoginForm() {
+
+const router = useRouter();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -21,15 +25,15 @@ export default function LoginForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = (e) => {
+  e.preventDefault();
 
-    console.log(form);
+  console.log(form);
 
-    // TODO:
-    // Call Login API
-    // Redirect to dashboard
-  };
+  // TODO: Call Login API
+
+  router.push("/dashboard");
+};
 
   return (
     <div className="w-full">

@@ -1,5 +1,8 @@
+"use client";
+
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import { useState } from "react";
 
 import InventoryHeader from "../components/inventory/InventoryHeader";
 import InventoryStats from "../components/inventory/InventoryStats";
@@ -7,8 +10,11 @@ import CategoryFilter from "../components/inventory/CategoryFilter";
 import InventoryTable from "../components/inventory/InventoryTable";
 import Pagination from "../components/inventory/Pagination";
 import BottomStatusBar from "../components/inventory/BottomStatusBar";
+import AddItemModal from "@/app/components/inventory/AddItemModal";
 
 export default function InventoryPage() {
+  const [showAddModal, setShowAddModal] = useState(false);
+
   return (
     <div className="mt-6 bg-white rounded-2xl border shadow-sm overflow-hidden">
 
@@ -28,7 +34,7 @@ export default function InventoryPage() {
 
             {/* Header */}
             <div className="mt-6">
-              <InventoryHeader />
+              <InventoryHeader onAddItem={()=>setShowAddModal(true)}/>
             </div>
 
             {/* Statistics */}
@@ -50,6 +56,10 @@ export default function InventoryPage() {
             <div className="mt-6">
               <Pagination />
             </div>
+
+            {showAddModal && (
+              <AddItemModal onClose={() => setShowAddModal(false)} />
+            )}
 
           </div>
 

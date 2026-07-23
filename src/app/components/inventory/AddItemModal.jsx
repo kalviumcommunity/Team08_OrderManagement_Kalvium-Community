@@ -1,0 +1,116 @@
+"use client";
+
+export default function AddItemModal({ onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl w-full max-w-2xl p-8 shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            Add New Item
+          </h2>
+
+          <button
+            onClick={onClose}
+            className="text-3xl text-gray-500 hover:text-black"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Form */}
+        <form className="grid grid-cols-2 gap-6">
+          {/* Product */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              Product
+            </label>
+            <input
+              type="text"
+              placeholder="Enter product name"
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* SKU */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              SKU / Barcode
+            </label>
+            <input
+              type="text"
+              placeholder="Enter SKU"
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* Stock */}
+          <div>
+  <label className="block mb-2 font-medium text-gray-700">
+    Stock Level
+  </label>
+
+  <input
+    type="range"
+    min="0"
+    max="500"
+    defaultValue="100"
+    className="w-full accent-indigo-600"
+  />
+
+  <div className="flex justify-between text-sm text-gray-500 mt-1">
+    <span>0</span>
+    <span>250</span>
+    <span>500</span>
+  </div>
+</div>
+
+          {/* Status */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              Status
+            </label>
+            <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option>In Stock</option>
+              <option>Low Stock</option>
+              <option>Out of Stock</option>
+            </select>
+          </div>
+
+          {/* Category */}
+          <div className="col-span-2">
+            <label className="block mb-2 font-medium text-gray-700">
+              Category
+            </label>
+            <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option>Vegetables</option>
+              <option>Fruits</option>
+              <option>Dairy</option>
+              <option>Beverages</option>
+              <option>Meat</option>
+              <option>Bakery</option>
+            </select>
+          </div>
+
+          {/* Buttons */}
+          <div className="col-span-2 flex justify-end gap-4 mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+            >
+              Add Item
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

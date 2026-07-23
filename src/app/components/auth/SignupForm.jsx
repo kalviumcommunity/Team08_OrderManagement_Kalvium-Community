@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import PasswordInput from "./PasswordInput";
 
 export default function SignupForm() {
+
+const router = useRouter();
+
   const [form, setForm] = useState({
     restaurant: "",
     owner: "",
@@ -26,10 +30,14 @@ export default function SignupForm() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    console.log(form);
-  };
+  console.log(form);
+
+  // TODO: Call Login API
+
+  router.push("/dashboard");
+};
 
   return (
     <div className="w-full">
