@@ -5,7 +5,7 @@ import InventoryRow from "./InventoryRow";
 export default function InventoryTable() {
   const inventory = [
     {
-      image: "https://picsum.photos/80?1",
+     
       product: "Organic Cherry Tomatoes",
       subtitle: "Premium Grade A",
       sku: "TOM-CR-402",
@@ -16,7 +16,7 @@ export default function InventoryTable() {
       category: "Vegetables",
     },
     {
-      image: "https://picsum.photos/80?2",
+      
       product: "Whole Milk 1L",
       subtitle: "Pasteurized / Local Farm",
       sku: "DRY-MIL-901",
@@ -27,7 +27,7 @@ export default function InventoryTable() {
       category: "Dairy & Eggs",
     },
     {
-      image: "https://picsum.photos/80?3",
+     
       product: "Prime Ribeye Steak",
       subtitle: "Vacuum Sealed",
       sku: "MT-RBY-884",
@@ -38,7 +38,7 @@ export default function InventoryTable() {
       category: "Meat & Poultry",
     },
     {
-      image: "https://picsum.photos/80?4",
+    
       product: "Saffron Threads",
       subtitle: "Premium Imported",
       sku: "SP-SFR-221",
@@ -101,7 +101,6 @@ export default function InventoryTable() {
             {inventory.map((item, index) => (
               <InventoryRow
                 key={index}
-                image={item.image}
                 product={item.product}
                 subtitle={item.subtitle}
                 sku={item.sku}
