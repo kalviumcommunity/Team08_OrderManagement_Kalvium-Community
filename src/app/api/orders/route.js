@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
+import { broadcastSSE } from "@/lib/sse";
 
 // GET: Retrieve all active orders (sorted by creation time)
 export async function GET(req) {
@@ -108,12 +109,19 @@ export async function POST(req) {
           },
         },
         include: {
-          items: true,
+          items: {
+            include: {
+              product: true,
+            },
+          },
         },
       });
 
       return newOrder;
     });
+
+    // Broadcast SSE update
+    broadcastSSE("ORDER_CREATED", result);
 
     return NextResponse.json(
       { message: "Order placed successfully", order: result },

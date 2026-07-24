@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
+import { broadcastSSE } from "@/lib/sse";
 
 // PATCH: Sequential order status transition (PENDING -> PREPARING -> READY)
 export async function PATCH(req, { params }) {
@@ -57,7 +58,17 @@ export async function PATCH(req, { params }) {
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status: nextStatus },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
+
+    // Broadcast SSE update
+    broadcastSSE("ORDER_UPDATED", updatedOrder);
 
     return NextResponse.json(
       { message: `Order status updated to ${nextStatus}`, order: updatedOrder },
