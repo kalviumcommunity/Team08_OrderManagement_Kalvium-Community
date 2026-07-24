@@ -3,16 +3,21 @@
 import { Pencil, Trash2 } from "lucide-react";
 
 export default function InventoryRow({
-  image,
-  product,
-  subtitle,
-  sku,
-  barcode,
-  stock,
-  totalStock,
-  status,
-  category,
+  item,
+  onEdit,
 }) {
+  const {
+    image,
+    product,
+    subtitle,
+    sku,
+    barcode,
+    stock,
+    totalStock,
+    status,
+    category,
+  } = item;
+
   const percentage = Math.min(
     Math.round((stock / totalStock) * 100),
     100
@@ -117,7 +122,10 @@ export default function InventoryRow({
 
         <div className="flex gap-3">
 
-          <button className="text-gray-500 hover:text-indigo-600 transition">
+          <button
+            onClick={() => onEdit(item)}
+            className="text-gray-500 hover:text-indigo-600 transition"
+          >
             <Pencil size={18} />
           </button>
 

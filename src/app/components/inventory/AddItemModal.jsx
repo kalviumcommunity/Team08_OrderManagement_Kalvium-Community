@@ -1,6 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 export default function AddItemModal({ onClose }) {
+
+const [stock, setStock] = useState(100);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-2xl p-8 shadow-2xl">
@@ -45,25 +50,20 @@ export default function AddItemModal({ onClose }) {
           </div>
 
           {/* Stock */}
-          <div>
-  <label className="block mb-2 font-medium text-gray-700">
-    Stock Level
-  </label>
+ <div>
+      <label className="block mb-2 font-medium text-gray-700">
+        Stock Level: <span className="font-bold">{stock}</span>
+      </label>
 
-  <input
-    type="range"
-    min="0"
-    max="500"
-    defaultValue="100"
-    className="w-full accent-indigo-600"
-  />
-
-  <div className="flex justify-between text-sm text-gray-500 mt-1">
-    <span>0</span>
-    <span>250</span>
-    <span>500</span>
-  </div>
-</div>
+      <input
+        type="range"
+        min="0"
+        max="500"
+        value={stock}
+        onChange={(e) => setStock(e.target.value)}
+        className="w-full accent-indigo-600"
+      />
+    </div>
 
           {/* Status */}
           <div>
