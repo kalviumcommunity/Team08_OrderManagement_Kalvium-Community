@@ -64,6 +64,8 @@ export default function InventoryRow({
               {subtitle}
             </p>
 
+            
+
           </div>
 
         </div>
