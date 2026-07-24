@@ -2,54 +2,7 @@
 
 import InventoryRow from "./InventoryRow";
 
-export default function InventoryTable() {
-  const inventory = [
-    {
-     
-      product: "Organic Cherry Tomatoes",
-      subtitle: "Premium Grade A",
-      sku: "TOM-CR-402",
-      barcode: "4202",
-      stock: 420,
-      totalStock: 500,
-      status: "instock",
-      category: "Vegetables",
-    },
-    {
-      
-      product: "Whole Milk 1L",
-      subtitle: "Pasteurized / Local Farm",
-      sku: "DRY-MIL-901",
-      barcode: "901",
-      stock: 45,
-      totalStock: 200,
-      status: "lowstock",
-      category: "Dairy & Eggs",
-    },
-    {
-     
-      product: "Prime Ribeye Steak",
-      subtitle: "Vacuum Sealed",
-      sku: "MT-RBY-884",
-      barcode: "884",
-      stock: 0,
-      totalStock: 80,
-      status: "outofstock",
-      category: "Meat & Poultry",
-    },
-    {
-    
-      product: "Saffron Threads",
-      subtitle: "Premium Imported",
-      sku: "SP-SFR-221",
-      barcode: "221",
-      stock: 12,
-      totalStock: 20,
-      status: "instock",
-      category: "Spices",
-    },
-  ];
-
+export default function InventoryTable({ inventory, onEdit }) {
   return (
     <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
 
@@ -98,17 +51,11 @@ export default function InventoryTable() {
           {/* Body */}
           <tbody>
 
-            {inventory.map((item, index) => (
+            {inventory.map((item) => (
               <InventoryRow
-                key={index}
-                product={item.product}
-                subtitle={item.subtitle}
-                sku={item.sku}
-                barcode={item.barcode}
-                stock={item.stock}
-                totalStock={item.totalStock}
-                status={item.status}
-                category={item.category}
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
               />
             ))}
 
