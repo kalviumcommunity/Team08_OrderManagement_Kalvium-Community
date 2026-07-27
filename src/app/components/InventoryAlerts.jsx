@@ -1,4 +1,85 @@
+"use client";
+
+import { useState } from 'react';
+import RestockModal from '@/app/components/inventory/RestockModal';
+import RestockHistory from '@/app/components/inventory/RestockHistory';
+
 export default function InventoryAlerts() {
+  const [showRestockModal, setShowRestockModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [restockHistory, setRestockHistory] = useState([]);
+  const [alerts, setAlerts] = useState([
+    {
+      id: 1,
+      product: 'Premium Wagyu Beef',
+      sku: 'WYB-100',
+      stock: 2.4,
+      totalStock: 20,
+      status: 'Low Stock',
+      message: 'Reorder immediately to avoid shortages.',
+      tone: 'red',
+    },
+    {
+      id: 2,
+      product: 'Fresh Mozzarella',
+      sku: 'CHE-201',
+      stock: 5.0,
+      totalStock: 11,
+      status: 'Medium Stock',
+      message: 'Plan restocking within the next delivery cycle.',
+      tone: 'yellow',
+    },
+  ]);
+
+  const handleRestock = (item) => {
+    setSelectedItem(item);
+    setShowRestockModal(true);
+  };
+
+  const handleConfirmRestock = (receivedQty) => {
+    if (!selectedItem) return;
+
+    const updatedAlerts = alerts
+      .map((item) => {
+        if (item.id !== selectedItem.id) {
+          return item;
+        }
+
+        const newStock = Math.min(item.stock + receivedQty, item.totalStock);
+        const percentage = (newStock / item.totalStock) * 100;
+
+        let status = 'In Stock';
+
+        if (percentage <= 10) {
+          status = 'Low Stock';
+        } else if (percentage <= 30) {
+          status = 'Medium Stock';
+        }
+
+        return {
+          ...item,
+          stock: newStock,
+          status,
+        };
+      })
+      .filter((item) => item.status !== 'In Stock');
+
+    setAlerts(updatedAlerts);
+    setRestockHistory((prev) => [
+      {
+        id: Date.now(),
+        product: selectedItem.product,
+        previousStock: selectedItem.stock,
+        receivedQty,
+        newStock: Math.min(selectedItem.stock + receivedQty, selectedItem.totalStock),
+        date: new Date().toLocaleString(),
+      },
+      ...prev,
+    ]);
+    setShowRestockModal(false);
+    setSelectedItem(null);
+  };
+
   return (
     <div className="col-span-1 lg:col-span-2 bg-white rounded-xl border shadow-sm p-5">
 
@@ -16,123 +97,81 @@ export default function InventoryAlerts() {
       </div>
 
       <div className="space-y-5">
-
-        {/* Item 1 */}
-        <div className="border rounded-xl p-4 hover:shadow-md transition">
-
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-
-            <div>
-
-              <h3 className="font-semibold text-lg">
-                Premium Wagyu Beef
-              </h3>
-
-              <p className="text-sm text-gray-500">
-                SKU: WYB-100
-              </p>
-
-            </div>
-
-            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full w-fit">
-              Low Stock
-            </span>
-
+        {alerts.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-green-600">🎉 All inventory items are sufficiently stocked!</h3>
+            <p className="text-gray-500 mt-2">There are no inventory alerts at the moment.</p>
           </div>
+        ) : (
+          alerts.map((item) => {
+            const progressWidth = `${Math.max(10, Math.round((item.stock / item.totalStock) * 100))}%`;
+            const badgeClass = item.tone === 'red'
+              ? 'bg-red-100 text-red-600'
+              : 'bg-yellow-100 text-yellow-700';
+            const stockClass = item.tone === 'red' ? 'text-red-500' : 'text-yellow-600';
 
-          <div className="mt-4">
+            return (
+              <div key={item.id} className="border rounded-xl p-4 hover:shadow-md transition">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">{item.product}</h3>
+                    <p className="text-sm text-gray-500">SKU: {item.sku}</p>
+                  </div>
 
-            <div className="flex justify-between text-sm mb-2">
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full w-fit ${badgeClass}`}>
+                    {item.status}
+                  </span>
+                </div>
 
-              <span>Stock Remaining</span>
+                <div className="mt-4">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Stock Remaining</span>
+                    <span className={`font-medium ${stockClass}`}>{item.stock.toFixed(1)} kg</span>
+                  </div>
 
-              <span className="font-medium text-red-500">
-                2.4 kg
-              </span>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${item.tone === 'red' ? 'bg-red-500' : 'bg-yellow-500'}`}
+                      style={{ width: progressWidth }}
+                    ></div>
+                  </div>
+                </div>
 
-            </div>
+                <div className="mt-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <p className="text-sm text-gray-500">{item.message}</p>
 
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-
-              <div className="w-[20%] h-full bg-red-500 rounded-full"></div>
-
-            </div>
-
-          </div>
-
-          <div className="mt-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-
-            <p className="text-sm text-gray-500">
-              Reorder immediately to avoid shortages.
-            </p>
-
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg transition">
-              Restock
-            </button>
-
-          </div>
-
-        </div>
-
-        {/* Item 2 */}
-        <div className="border rounded-xl p-4 hover:shadow-md transition">
-
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-
-            <div>
-
-              <h3 className="font-semibold text-lg">
-                Fresh Mozzarella
-              </h3>
-
-              <p className="text-sm text-gray-500">
-                SKU: CHE-201
-              </p>
-
-            </div>
-
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full w-fit">
-              Medium Stock
-            </span>
-
-          </div>
-
-          <div className="mt-4">
-
-            <div className="flex justify-between text-sm mb-2">
-
-              <span>Stock Remaining</span>
-
-              <span className="font-medium text-yellow-600">
-                5.0 kg
-              </span>
-
-            </div>
-
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-
-              <div className="w-[45%] h-full bg-yellow-500 rounded-full"></div>
-
-            </div>
-
-          </div>
-
-          <div className="mt-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-
-            <p className="text-sm text-gray-500">
-              Plan restocking within the next delivery cycle.
-            </p>
-
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg transition">
-              Restock
-            </button>
-
-          </div>
-
-        </div>
-
+                  <button
+                    onClick={() => handleRestock(item)}
+                    disabled={item.stock >= item.totalStock}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      item.stock >= item.totalStock
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    }`}
+                  >
+                    Restock
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
+      {showRestockModal && (
+        <RestockModal
+          item={selectedItem}
+          onClose={() => {
+            setShowRestockModal(false);
+            setSelectedItem(null);
+          }}
+          onConfirm={handleConfirmRestock}
+        />
+      )}
+
+      <div className="mt-8">
+        <RestockHistory history={restockHistory} />
+      </div>
     </div>
   );
 }
