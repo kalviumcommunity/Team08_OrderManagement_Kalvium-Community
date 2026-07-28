@@ -15,9 +15,20 @@ export async function GET(req) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const logs = await listInventoryLogs();
+    const { searchParams } = new URL(req.url);
+    const productId = searchParams.get("productId");
+    const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "10", 10));
 
-    return NextResponse.json({ logs }, { status: 200 });
+    const result = await listInventoryLogs({
+      productId,
+      search,
+      page,
+      limit,
+    });
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("GET inventory logs error:", error);
     return NextResponse.json(

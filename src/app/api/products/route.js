@@ -12,11 +12,45 @@ export async function GET(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search");
+    const lowStock = searchParams.get("lowStock") === "true";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "10", 10));
+
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    if (search) {
+      where.name = {
+        contains: search,
+      };
+    }
+    if (lowStock) {
+      where.stock = {
+        lt: prisma.product.fields.lowStockThreshold,
+      };
+    }
+
+    const totalCount = await prisma.product.count({ where });
+    const totalPages = Math.ceil(totalCount / limit);
+
     const products = await prisma.product.findMany({
+      where,
       orderBy: { name: "asc" },
+      skip,
+      take: limit,
     });
 
-    return NextResponse.json({ products }, { status: 200 });
+    return NextResponse.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+      },
+    }, { status: 200 });
   } catch (error) {
     console.error("GET products error:", error);
     return NextResponse.json(
