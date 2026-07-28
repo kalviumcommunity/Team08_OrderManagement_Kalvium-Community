@@ -90,9 +90,6 @@ export default function InventoryAlerts() {
           Inventory Alerts
         </h2>
 
-        <button className="text-sm text-indigo-600 hover:underline">
-          View All
-        </button>
 
       </div>
 
