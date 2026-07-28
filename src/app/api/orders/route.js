@@ -17,8 +17,32 @@ export async function GET(req) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "10", 10));
+
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    if (status) {
+      where.status = status.toUpperCase();
+    }
+    if (search) {
+      where.customerName = {
+        contains: search,
+      };
+    }
+
+    const totalCount = await prisma.order.count({ where });
+    const totalPages = Math.ceil(totalCount / limit);
+
     const orders = await prisma.order.findMany({
+      where,
       orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
       include: {
         items: {
           include: {
@@ -28,7 +52,15 @@ export async function GET(req) {
       },
     });
 
-    return NextResponse.json({ orders }, { status: 200 });
+    return NextResponse.json({
+      orders,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+      },
+    }, { status: 200 });
   } catch (error) {
     console.error("GET orders error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

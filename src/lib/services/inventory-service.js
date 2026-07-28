@@ -1,8 +1,27 @@
 import prisma from "../prisma";
 
-export async function listInventoryLogs() {
-  return await prisma.inventoryLog.findMany({
+export async function listInventoryLogs(filters = {}) {
+  const { productId, search, page = 1, limit = 10 } = filters;
+  const skip = (page - 1) * limit;
+
+  const where = {};
+  if (productId) {
+    where.productId = productId;
+  }
+  if (search) {
+    where.reason = {
+      contains: search,
+    };
+  }
+
+  const totalCount = await prisma.inventoryLog.count({ where });
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const logs = await prisma.inventoryLog.findMany({
+    where,
     orderBy: { timestamp: "desc" },
+    skip,
+    take: limit,
     include: {
       product: true,
       owner: {
@@ -15,6 +34,16 @@ export async function listInventoryLogs() {
       },
     },
   });
+
+  return {
+    logs,
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages,
+    },
+  };
 }
 
 export async function updateStock(productId, ownerId, changeAmount, reason) {
