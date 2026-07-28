@@ -81,6 +81,17 @@ export default function Sidebar() {
   <span>Inventory</span>
 </Link>
 
+        <Link
+  href="/profile"
+  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+    pathname === "/profile"
+      ? "bg-indigo-600 text-white"
+      : "text-gray-700 hover:bg-gray-100"
+  }`}
+>
+  <FileText size={20} />
+  <span>Profile</span>
+</Link>
 
         </div>
       </div>

@@ -1,4 +1,11 @@
+"use client";
+
+import { useState } from "react";
+import LogisticsModal from "@/app/components/LogisticsModal";
+
 export default function LogisticsHub() {
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <div className="bg-white rounded-xl border shadow-sm p-5">
 
@@ -9,7 +16,10 @@ export default function LogisticsHub() {
           Logistics Hub
         </h2>
 
-        <button className="text-sm text-indigo-600 hover:underline">
+        <button
+          onClick={() => setShowModal(true)}
+          className="text-sm text-indigo-600 hover:underline"
+        >
           View Map
         </button>
 
@@ -157,6 +167,12 @@ export default function LogisticsHub() {
         </div>
 
       </div>
+
+      {showModal && (
+        <LogisticsModal
+          onClose={() => setShowModal(false)}
+        />
+      )}
 
     </div>
   );
