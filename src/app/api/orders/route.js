@@ -51,6 +51,8 @@ export async function POST(req) {
 
     const finalCustomerName = customerName || user.name || "Walk-in Customer";
 
+    const lowStockAlerts = [];
+
     // Run transaction
     const result = await prisma.$transaction(async (tx) => {
       const orderItemsToCreate = [];
@@ -80,6 +82,15 @@ export async function POST(req) {
           where: { id: productId },
           data: { stock: { decrement: quantity } },
         });
+
+        if (updatedProduct.stock < updatedProduct.lowStockThreshold) {
+          lowStockAlerts.push({
+            productId: updatedProduct.id,
+            name: updatedProduct.name,
+            stock: updatedProduct.stock,
+            lowStockThreshold: updatedProduct.lowStockThreshold,
+          });
+        }
 
         // Add log entry
         await tx.inventoryLog.create({
@@ -122,6 +133,12 @@ export async function POST(req) {
 
     // Broadcast SSE update
     broadcastSSE("ORDER_CREATED", result);
+
+    // Broadcast low stock alerts
+    for (const alert of lowStockAlerts) {
+      console.log(`[Low-Stock Alert] Product ${alert.name} (${alert.productId}) is low on stock! Current: ${alert.stock}, Threshold: ${alert.lowStockThreshold}`);
+      broadcastSSE("LOW_STOCK_ALERT", alert);
+    }
 
     return NextResponse.json(
       { message: "Order placed successfully", order: result },
