@@ -20,6 +20,17 @@ const router = useRouter();
     agree: false,
   });
 
+  const isFormValid =
+    form.restaurant.trim() !== "" &&
+    form.owner.trim() !== "" &&
+    form.email.trim() !== "" &&
+    form.phone.trim() !== "" &&
+    form.business.trim() !== "" &&
+    form.password.trim() !== "" &&
+    form.confirmPassword.trim() !== "" &&
+    form.password === form.confirmPassword &&
+    form.agree;
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -32,9 +43,11 @@ const router = useRouter();
   const handleSubmit = (e) => {
   e.preventDefault();
 
+  if (!isFormValid) return;
+
   console.log(form);
 
-  // TODO: Call Login API
+  // TODO: Call Signup API
 
   router.push("/dashboard");
 };
@@ -72,6 +85,7 @@ const router = useRouter();
             <input
               type="text"
               name="restaurant"
+              required
               value={form.restaurant}
               onChange={handleChange}
               placeholder="FoodOps Restaurant"
@@ -89,6 +103,7 @@ const router = useRouter();
             <input
               type="text"
               name="owner"
+              required
               value={form.owner}
               onChange={handleChange}
               placeholder="John Doe"
@@ -112,6 +127,7 @@ const router = useRouter();
             <input
               type="email"
               name="email"
+              required
               value={form.email}
               onChange={handleChange}
               placeholder="restaurant@email.com"
@@ -129,6 +145,7 @@ const router = useRouter();
             <input
               type="tel"
               name="phone"
+              required
               value={form.phone}
               onChange={handleChange}
               placeholder="+91 9876543210"
@@ -149,6 +166,7 @@ const router = useRouter();
 
           <select
             name="business"
+            required
             value={form.business}
             onChange={handleChange}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -170,6 +188,7 @@ const router = useRouter();
           <PasswordInput
             label="Password"
             name="password"
+            required={true}
             value={form.password}
             onChange={handleChange}
             placeholder="Enter password"
@@ -178,6 +197,7 @@ const router = useRouter();
           <PasswordInput
             label="Confirm Password"
             name="confirmPassword"
+            required={true}
             value={form.confirmPassword}
             onChange={handleChange}
             placeholder="Confirm password"
@@ -213,7 +233,12 @@ const router = useRouter();
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 transition text-white py-3 rounded-xl font-semibold"
+          disabled={!isFormValid}
+          className={`w-full py-3 rounded-xl font-semibold text-white transition ${
+            isFormValid
+              ? "bg-indigo-600 hover:bg-indigo-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
         >
           Create Account
         </button>
@@ -225,7 +250,7 @@ const router = useRouter();
         Already have an account?
 
         <Link
-          href="/login"
+          href="/"
           className="ml-2 font-semibold text-indigo-600 hover:underline"
         >
           Sign In
