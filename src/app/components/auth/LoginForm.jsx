@@ -16,6 +16,10 @@ const router = useRouter();
     remember: false,
   });
 
+  const isFormValid =
+    form.email.trim() !== "" &&
+    form.password.trim() !== "";
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -27,6 +31,8 @@ const router = useRouter();
 
  const handleSubmit = (e) => {
   e.preventDefault();
+
+  if (!isFormValid) return;
 
   console.log(form);
 
@@ -118,6 +124,7 @@ const router = useRouter();
             <input
               type="email"
               name="email"
+              required
               placeholder="restaurant@email.com"
               value={form.email}
               onChange={handleChange}
@@ -133,6 +140,7 @@ const router = useRouter();
         <PasswordInput
           label="Password"
           name="password"
+          required={true}
           value={form.password}
           onChange={handleChange}
           placeholder="Enter your password"
@@ -168,7 +176,12 @@ const router = useRouter();
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 transition py-3 text-white font-semibold text-lg"
+          disabled={!isFormValid}
+          className={`w-full rounded-xl py-3 text-white font-semibold text-lg transition ${
+            isFormValid
+              ? "bg-indigo-600 hover:bg-indigo-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
         >
           Sign In
         </button>

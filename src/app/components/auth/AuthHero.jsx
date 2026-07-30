@@ -20,7 +20,7 @@ export default function AuthHero() {
       <div className="relative z-10 px-8 xl:px-12 text-white text-center">
 
         <h1 className="text-3xl xl:text-4xl font-bold">
-          FoodOps Pro
+          Licious
         </h1>
 
         <p className="mt-4 text-gray-100 text-base xl:text-lg leading-7">

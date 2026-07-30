@@ -31,12 +31,10 @@ export default function Sidebar() {
       <div className="p-4 lg:p-6">
         <div>
           <h1 className="hidden lg:block text-xl font-bold text-indigo-600">
-            FoodOps Pro
+            Licious
           </h1>
 
-          <h1 className="lg:hidden text-2xl text-center">
-            🍔
-          </h1>
+          
 
           <p className="hidden lg:block text-xs text-gray-500">
             Order Management
