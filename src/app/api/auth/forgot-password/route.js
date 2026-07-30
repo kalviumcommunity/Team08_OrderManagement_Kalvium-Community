@@ -25,18 +25,25 @@ export async function POST(req) {
       );
     }
 
-    // Generate a mock reset token
+    // Generate a secure reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
     const expires = new Date(Date.now() + 3600000); // 1 hour expiration
 
-    // Since we don't have reset token fields on our basic User model, we'll return
-    // the mock token in response for simulation, or write it to logs/console.
-    console.log(`[Forgot Password] Reset token for ${email}: ${resetToken} (expires at ${expires})`);
+    // Update user in DB
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: expires,
+      },
+    });
+
+    console.log(`[Forgot Password] Simulated Email Sent to ${email} with token: ${resetToken}`);
 
     return NextResponse.json(
       {
         message: "If that email exists, we have sent a password reset token.",
-        // We expose the token in the API for testing and mock interface purposes
         debug: {
           resetToken,
           expires,

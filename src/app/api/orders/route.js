@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
 import { broadcastSSE } from "@/lib/sse";
+import { orderSchema } from "@/lib/validation";
+import { isRateLimited, getClientKey } from "@/lib/rate-limiter";
 
 // GET: Retrieve all active orders (sorted by creation time)
 export async function GET(req) {
@@ -70,16 +72,29 @@ export async function GET(req) {
 // POST: Place a new order (with transaction-based stock decrement)
 export async function POST(req) {
   try {
+    const ipKey = getClientKey(req, "order");
+    if (isRateLimited(ipKey, 10, 60000)) {
+      return NextResponse.json(
+        { error: "Too many order requests. Please try again in a minute." },
+        { status: 429 }
+      );
+    }
+
     const user = getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, customerName } = await req.json();
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "Items array is required" }, { status: 400 });
+    const body = await req.json();
+    const validation = orderSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors.map((e) => e.message).join(", ") },
+        { status: 400 }
+      );
     }
+
+    const { items, customerName } = validation.data;
 
     const finalCustomerName = customerName || user.name || "Walk-in Customer";
 
