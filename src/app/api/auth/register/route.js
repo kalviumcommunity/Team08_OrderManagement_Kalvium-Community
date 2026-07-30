@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { registerSchema } from "@/lib/validation";
 
 export async function POST(req) {
   try {
-    const { name, email, password, role } = await req.json();
-
-    if (!name || !email || !password) {
+    const body = await req.json();
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields: name, email, password" },
+        { error: validation.error.errors.map((e) => e.message).join(", ") },
         { status: 400 }
       );
     }
+
+    const { name, email, password, role } = validation.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -25,13 +28,7 @@ export async function POST(req) {
       );
     }
 
-    // Validate role (defaults to CUSTOMER if not provided or invalid)
-    const allowedRoles = ["CUSTOMER", "OWNER", "MANAGER", "AUDITOR"];
-    const finalRole = allowedRoles.includes(role?.toUpperCase())
-      ? role.toUpperCase()
-      : "CUSTOMER";
-
-    // Hash the password
+    const finalRole = role || "CUSTOMER";
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user in database

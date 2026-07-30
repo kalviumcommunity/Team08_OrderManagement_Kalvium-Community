@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { signToken } from "@/lib/jwt";
+import { signAccessToken, signRefreshToken } from "@/lib/jwt";
+import { isRateLimited, getClientKey } from "@/lib/rate-limiter";
 
 export async function POST(req) {
   try {
+    const ipKey = getClientKey(req, "login");
+    if (isRateLimited(ipKey, 5, 60000)) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again in a minute." },
+        { status: 429 }
+      );
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -34,11 +43,23 @@ export async function POST(req) {
       );
     }
 
-    // Sign custom JWT token
-    const token = signToken({
+    // Sign tokens
+    const accessToken = signAccessToken({
       id: user.id,
       email: user.email,
       role: user.role,
+    });
+
+    const refreshToken = signRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    // Store refresh token in user profile
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
     });
 
     const response = NextResponse.json({
@@ -49,16 +70,27 @@ export async function POST(req) {
         email: user.email,
         role: user.role,
       },
-      token,
+      token: accessToken,
     });
 
-    // Set secure HttpOnly cookie
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Set secure HttpOnly cookies
     response.cookies.set({
       name: "token",
-      value: token,
+      value: accessToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 1 day
+      secure: isProd,
+      maxAge: 15 * 60, // 15 minutes
+      path: "/",
+    });
+
+    response.cookies.set({
+      name: "refreshToken",
+      value: refreshToken,
+      httpOnly: true,
+      secure: isProd,
+      maxAge: 7 * 24 * 60 * 60, // 7 days
       path: "/",
     });
 

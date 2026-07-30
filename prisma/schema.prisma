@@ -8,14 +8,17 @@ generator client {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  name         String
-  email        String         @unique
-  passwordHash String
-  role         String         @default("CUSTOMER") // Role types: "CUSTOMER", "OWNER", "MANAGER", "AUDITOR"
-  createdAt    DateTime       @default(now())
-  orders       Order[]
-  inventoryLogs InventoryLog[]
+  id                   String         @id @default(uuid())
+  name                 String
+  email                String         @unique
+  passwordHash         String
+  role                 String         @default("CUSTOMER") // Role types: "CUSTOMER", "OWNER", "MANAGER", "AUDITOR"
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  refreshToken         String?
+  createdAt            DateTime       @default(now())
+  orders               Order[]
+  inventoryLogs        InventoryLog[]
 }
 
 model Product {
