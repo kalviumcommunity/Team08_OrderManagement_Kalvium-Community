@@ -15,6 +15,7 @@ const router = useRouter();
     password: "",
     remember: false,
   });
+  const [error, setError] = useState("");
 
   const isFormValid =
     form.email.trim() !== "" &&
@@ -29,16 +30,42 @@ const router = useRouter();
     }));
   };
 
- const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!isFormValid) return;
 
-  console.log(form);
+  setError("");
 
-  // TODO: Call Login API
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+      }),
+    });
 
-  router.push("/dashboard");
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.error);
+      return;
+    }
+
+    console.log("Login Success:", data);
+
+    // Store user information for UI (optional)
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    router.push("/dashboard");
+  } catch (error) {
+    console.error("Login Error:", error);
+    alert("Something went wrong.");
+  }
 };
 
   return (
@@ -100,6 +127,12 @@ const router = useRouter();
       </div>
 
       {/* Form */}
+
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-100 p-3 text-red-700">
+          {error}
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit}

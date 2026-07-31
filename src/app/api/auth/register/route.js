@@ -9,7 +9,11 @@ export async function POST(req) {
     const validation = registerSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: validation.error.errors.map((e) => e.message).join(", ") },
+        {
+          error: validation.error.issues
+            .map((e) => e.message)
+            .join(", "),
+        },
         { status: 400 }
       );
     }

@@ -59,7 +59,9 @@ export async function POST(req) {
     // Store refresh token in user profile
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken },
+      data: {
+        refreshToken,
+      },
     });
 
     const response = NextResponse.json({
