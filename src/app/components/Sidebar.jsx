@@ -1,17 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ShoppingCart,
   Package,
   FileText,
-  Settings,
- 
+  LogOut,
 } from "lucide-react";
+
 export default function Sidebar() {
-    const pathname = usePathname();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+
+    if (!confirmLogout) return;
+
+    router.push("/");
+  };
   return (
     <aside
       className="
@@ -110,12 +119,21 @@ export default function Sidebar() {
               Alex Rivera
             </p>
 
-            <p className="text-xs text-gray-500">
-              Ops Lead
-            </p>
+            
           </div>
 
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="mt-6 w-full flex items-center justify-center lg:justify-start gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition"
+        >
+          <LogOut size={20} />
+
+          <span className="hidden lg:block">
+            Logout
+          </span>
+        </button>
 
       </div>
     </aside>

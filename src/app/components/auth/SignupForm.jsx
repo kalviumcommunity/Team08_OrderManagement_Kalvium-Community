@@ -40,16 +40,58 @@ const router = useRouter();
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!isFormValid) return;
 
-  console.log(form);
+  try {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: form.owner,
+        email: form.email,
+        password: form.password,
+        role: "OWNER",
+      }),
+    });
 
-  // TODO: Call Signup API
+    const data = await response.json();
 
-  router.push("/dashboard");
+    if (!response.ok) {
+      alert(data.error);
+      return;
+    }
+
+    // Automatically log in after successful registration
+    const loginResponse = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+      }),
+    });
+
+    const loginData = await loginResponse.json();
+
+    if (!loginResponse.ok) {
+      alert(loginData.error);
+      return;
+    }
+
+    localStorage.setItem("user", JSON.stringify(loginData.user));
+
+    router.push("/dashboard");
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  }
 };
 
   return (
