@@ -1,4 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function ActiveOrders() {
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/orders");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      const data = await response.json();
+
+      setOrders(data.orders || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="col-span-1 lg:col-span-2 bg-white border rounded-xl shadow-sm p-5">
 
@@ -47,73 +73,46 @@ export default function ActiveOrders() {
           </thead>
 
           <tbody>
+            {orders.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center py-10 text-gray-500">
+                  No Active Orders
+                </td>
+              </tr>
+            ) : (
+              orders.map((order) => (
+                <tr key={order.id} className="border-b hover:bg-gray-50 transition">
+                  <td className="py-4 font-medium">
+                    {order.id.slice(0, 8)}
+                  </td>
 
-            <tr className="border-b hover:bg-gray-50 transition">
+                  <td>{order.customerName}</td>
 
-              <td className="py-4 font-medium">
-                #1001
-              </td>
+                  <td>
+                    {order.items
+                      .map((item) => `${item.product.name} ×${item.quantity}`)
+                      .join(", ")}
+                  </td>
 
-              <td>John Doe</td>
+                  <td>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium
+                        ${
+                          order.status === "PENDING"
+                            ? "bg-blue-100 text-blue-700"
+                            : order.status === "PREPARING"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                    >
+                      {order.status}
+                    </span>
+                  </td>
 
-              <td>Pizza ×2</td>
-
-              <td>
-                <span className="bg-yellow-100 text-yellow-700 rounded-full px-3 py-1 text-xs">
-                  Preparing
-                </span>
-              </td>
-
-              <td className="text-right font-medium">
-                $45.50
-              </td>
-
-            </tr>
-
-            <tr className="border-b hover:bg-gray-50 transition">
-
-              <td className="py-4 font-medium">
-                #1002
-              </td>
-
-              <td>Sarah Smith</td>
-
-              <td>Burger ×1</td>
-
-              <td>
-                <span className="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs">
-                  Ready
-                </span>
-              </td>
-
-              <td className="text-right font-medium">
-                $22.00
-              </td>
-
-            </tr>
-
-            <tr className="hover:bg-gray-50 transition">
-
-              <td className="py-4 font-medium">
-                #1003
-              </td>
-
-              <td>Alex Lee</td>
-
-              <td>Pasta ×1</td>
-
-              <td>
-                <span className="bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs">
-                  New
-                </span>
-              </td>
-
-              <td className="text-right font-medium">
-                $18.75
-              </td>
-
-            </tr>
-
+                  <td className="text-right">--</td>
+                </tr>
+              ))
+            )}
           </tbody>
 
         </table>

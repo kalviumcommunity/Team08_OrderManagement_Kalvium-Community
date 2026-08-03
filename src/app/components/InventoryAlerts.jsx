@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import RestockModal from '@/app/components/inventory/RestockModal';
 import RestockHistory from '@/app/components/inventory/RestockHistory';
 
@@ -8,28 +8,47 @@ export default function InventoryAlerts() {
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [restockHistory, setRestockHistory] = useState([]);
-  const [alerts, setAlerts] = useState([
-    {
-      id: 1,
-      product: 'Premium Wagyu Beef',
-      sku: 'WYB-100',
-      stock: 2.4,
-      totalStock: 20,
-      status: 'Low Stock',
-      message: 'Reorder immediately to avoid shortages.',
-      tone: 'red',
-    },
-    {
-      id: 2,
-      product: 'Fresh Mozzarella',
-      sku: 'CHE-201',
-      stock: 5.0,
-      totalStock: 11,
-      status: 'Medium Stock',
-      message: 'Plan restocking within the next delivery cycle.',
-      tone: 'yellow',
-    },
-  ]);
+  const [alerts, setAlerts] = useState([]);
+
+  useEffect(() => {
+    fetchInventoryAlerts();
+  }, []);
+
+  const fetchInventoryAlerts = async () => {
+    try {
+      const response = await fetch("/api/products");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+
+      const data = await response.json();
+
+      const inventoryAlerts = data.products
+        .filter((product) => product.stock < product.lowStockThreshold)
+        .map((product) => {
+          const percentage = (product.stock / product.lowStockThreshold) * 100;
+
+          return {
+            id: product.id,
+            product: product.name,
+            sku: product.id.slice(0, 8),
+            stock: product.stock,
+            totalStock: product.lowStockThreshold,
+            status: percentage <= 30 ? "Low Stock" : "Medium Stock",
+            message:
+              percentage <= 30
+                ? "Reorder immediately to avoid shortages."
+                : "Plan restocking within the next delivery cycle.",
+            tone: percentage <= 30 ? "red" : "yellow",
+          };
+        });
+
+      setAlerts(inventoryAlerts);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleRestock = (item) => {
     setSelectedItem(item);
@@ -65,6 +84,7 @@ export default function InventoryAlerts() {
       .filter((item) => item.status !== 'In Stock');
 
     setAlerts(updatedAlerts);
+    fetchInventoryAlerts();
     setRestockHistory((prev) => [
       {
         id: Date.now(),

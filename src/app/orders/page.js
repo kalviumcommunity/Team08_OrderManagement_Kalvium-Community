@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
@@ -5,8 +8,8 @@ import OrdersHeader from "../components/orders/OrdersHeader";
 
 import OrderBoard from "../components/orders/OrderBoard";
 
-
 export default function OrdersPage() {
+  const [search, setSearch] = useState("");
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -25,13 +28,15 @@ export default function OrdersPage() {
 
             {/* Page Header */}
             <div className="mt-6">
-              <OrdersHeader />
+              <OrdersHeader
+                search={search}
+                setSearch={setSearch}
+              />
             </div>
-
 
             {/* Order Board */}
             <div className="mt-6">
-              <OrderBoard />
+              <OrderBoard search={search} />
             </div>
 
           </div>
