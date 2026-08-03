@@ -8,12 +8,14 @@ import {
 } from "lucide-react";
 
 export default function OrderCard({
+  id,
   orderId,
   customer,
   items,
   waitTime,
   status,
   orderType,
+  updateOrderStatus,
 }) {
   const buttonStyles = {
     new: "bg-blue-600 hover:bg-blue-700 text-white",
@@ -123,7 +125,11 @@ const typeText = {
 
       {/* Action */}
       <button
-        className={`mt-6 w-full rounded-xl py-3 font-medium transition ${buttonStyles[status]}`}
+        onClick={() => updateOrderStatus(id, status)}
+        disabled={status === "ready"}
+        className={`mt-6 w-full rounded-xl py-3 font-medium transition ${
+          buttonStyles[status]
+        } ${status === "ready" ? "opacity-60 cursor-not-allowed" : ""}`}
       >
 
         <div className="flex items-center justify-center gap-2">

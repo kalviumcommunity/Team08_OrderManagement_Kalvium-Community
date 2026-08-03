@@ -1,4 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function OrderVolume() {
+  const [weeklyData, setWeeklyData] = useState([0, 0, 0, 0, 0, 0, 0]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/orders");
+      const data = await response.json();
+
+      const counts = [0, 0, 0, 0, 0, 0, 0];
+
+      data.orders.forEach((order) => {
+        const day = new Date(order.createdAt).getDay();
+        counts[day]++;
+      });
+
+      setWeeklyData(counts);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-white border rounded-xl shadow-sm p-5">
 
@@ -18,40 +46,23 @@ export default function OrderVolume() {
       {/* Chart */}
       <div className="flex items-end justify-between h-56 gap-2">
 
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-20 rounded-t bg-indigo-100"></div>
-          <span className="mt-2 text-xs text-gray-500">Mon</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-28 rounded-t bg-indigo-200"></div>
-          <span className="mt-2 text-xs text-gray-500">Tue</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-24 rounded-t bg-indigo-300"></div>
-          <span className="mt-2 text-xs text-gray-500">Wed</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-44 rounded-t bg-indigo-600"></div>
-          <span className="mt-2 text-xs text-gray-500">Thu</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-32 rounded-t bg-indigo-400"></div>
-          <span className="mt-2 text-xs text-gray-500">Fri</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-24 rounded-t bg-indigo-200"></div>
-          <span className="mt-2 text-xs text-gray-500">Sat</span>
-        </div>
-
-        <div className="flex flex-col items-center flex-1">
-          <div className="w-full max-w-8 h-16 rounded-t bg-indigo-100"></div>
-          <span className="mt-2 text-xs text-gray-500">Sun</span>
-        </div>
+        {[
+          { label: "Sun", color: "bg-indigo-100" },
+          { label: "Mon", color: "bg-indigo-200" },
+          { label: "Tue", color: "bg-indigo-300" },
+          { label: "Wed", color: "bg-indigo-400" },
+          { label: "Thu", color: "bg-indigo-500" },
+          { label: "Fri", color: "bg-indigo-600" },
+          { label: "Sat", color: "bg-indigo-700" },
+        ].map((day, index) => (
+          <div key={day.label} className="flex flex-col items-center flex-1">
+            <div
+              className={`w-full max-w-8 rounded-t ${day.color}`}
+              style={{ height: `${weeklyData[index] * 25 + 20}px` }}
+            ></div>
+            <span className="mt-2 text-xs text-gray-500">{day.label}</span>
+          </div>
+        ))}
 
       </div>
 

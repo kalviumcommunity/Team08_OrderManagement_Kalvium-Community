@@ -23,10 +23,6 @@ export function isRateLimited(key, limit = 10, windowMs = 60000) {
   rateLimitMap.set(key, clientData);
   return false;
 }
-
-/**
- * Get client identifier key from Next.js request.
- */
 export function getClientKey(req, customPrefix = "") {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
   return `${customPrefix}:${ip}`;

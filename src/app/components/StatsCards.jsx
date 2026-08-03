@@ -1,4 +1,48 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function StatsCards() {
+  const [stats, setStats] = useState({
+    newOrders: 0,
+    preparing: 0,
+    ready: 0,
+    lowStock: 0,
+  });
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const orderRes = await fetch("/api/orders");
+      const productRes = await fetch("/api/products");
+
+      const orderData = await orderRes.json();
+      const productData = await productRes.json();
+
+      const orders = orderData.orders || [];
+      const products = productData.products || [];
+
+      const newOrders = orders.filter((order) => order.status === "PENDING").length;
+      const preparing = orders.filter((order) => order.status === "PREPARING").length;
+      const ready = orders.filter((order) => order.status === "READY").length;
+      const lowStock = products.filter(
+        (product) => product.stock < product.lowStockThreshold
+      ).length;
+
+      setStats({
+        newOrders,
+        preparing,
+        ready,
+        lowStock,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mt-8">
 
@@ -9,7 +53,7 @@ export default function StatsCards() {
         </p>
 
         <h2 className="text-3xl lg:text-4xl font-bold mt-3">
-          128
+          {stats.newOrders}
         </h2>
 
         <p className="text-green-500 text-sm mt-3">
@@ -24,7 +68,7 @@ export default function StatsCards() {
         </p>
 
         <h2 className="text-3xl lg:text-4xl font-bold mt-3">
-          42
+          {stats.preparing}
         </h2>
 
         <p className="text-gray-500 text-sm mt-3">
@@ -39,7 +83,7 @@ export default function StatsCards() {
         </p>
 
         <h2 className="text-3xl lg:text-4xl font-bold mt-3">
-          15
+          {stats.ready}
         </h2>
 
         <p className="text-gray-500 text-sm mt-3">
@@ -69,7 +113,7 @@ export default function StatsCards() {
         </p>
 
         <h2 className="text-3xl lg:text-4xl font-bold mt-3">
-          09
+          {stats.lowStock}
         </h2>
 
         <p className="text-red-500 text-sm mt-3">

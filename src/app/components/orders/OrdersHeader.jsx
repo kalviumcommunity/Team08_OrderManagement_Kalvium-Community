@@ -6,7 +6,10 @@ import {
   Settings,
 } from "lucide-react";
 
-export default function OrdersHeader() {
+export default function OrdersHeader({
+  search,
+  setSearch,
+}) {
   return (
     <div className="w-full">
 
@@ -40,6 +43,8 @@ export default function OrdersHeader() {
             <input
               type="text"
               placeholder="Search order ID, customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             />
 
