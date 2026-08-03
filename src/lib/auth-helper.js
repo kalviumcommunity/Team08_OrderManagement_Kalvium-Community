@@ -1,6 +1,7 @@
 import { verifyToken } from "./jwt";
+import { getToken } from "next-auth/jwt";
 
-export function getUserFromRequest(req) {
+export async function getUserFromRequest(req) {
   try {
     let token = null;
 
@@ -19,11 +20,31 @@ export function getUserFromRequest(req) {
       token = cookies["token"];
     }
 
-    if (!token) return null;
+    if (token) {
+      try {
+        const decoded = verifyToken(token);
+        if (decoded) return decoded;
+      } catch (err) {
+        // Custom token verification failed or expired, fallback to NextAuth session
+      }
+    }
 
-    return verifyToken(token);
+    // 3. Fallback to NextAuth Session Token
+    const nextAuthSecret = process.env.NEXTAUTH_SECRET || "fallback_secret_for_development_purposes_only";
+    const nextAuthToken = await getToken({ req, secret: nextAuthSecret });
+    if (nextAuthToken) {
+      return {
+        id: nextAuthToken.id,
+        email: nextAuthToken.email,
+        name: nextAuthToken.name,
+        role: nextAuthToken.role,
+      };
+    }
+
+    return null;
   } catch (error) {
     console.error("Auth helper error:", error);
     return null;
   }
 }
+

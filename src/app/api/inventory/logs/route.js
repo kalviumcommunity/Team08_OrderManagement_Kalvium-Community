@@ -5,7 +5,7 @@ import { listInventoryLogs } from "@/lib/services/inventory-service";
 // GET: Retrieve inventory audit logs (Owner, Manager, Auditor only)
 export async function GET(req) {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -7,7 +7,7 @@ import { cancelOrder } from "@/lib/services/order-service";
 // PATCH: Sequential order status transition or order cancellation
 export async function PATCH(req, { params }) {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -8,7 +8,7 @@ import { isRateLimited, getClientKey } from "@/lib/rate-limiter";
 // GET: Retrieve all active orders (sorted by creation time)
 export async function GET(req) {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -80,7 +80,7 @@ export async function POST(req) {
       );
     }
 
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
