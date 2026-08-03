@@ -7,7 +7,7 @@ import { broadcastSSE } from "@/lib/sse";
 // GET: List all products and their current stock
 export async function GET(req) {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -63,7 +63,7 @@ export async function GET(req) {
 // PATCH: Direct inventory stock adjustments (restricted to OWNER and MANAGER)
 export async function PATCH(req) {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

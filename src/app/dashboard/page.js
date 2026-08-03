@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import StatsCards from "../components/StatsCards";
@@ -7,8 +10,37 @@ import InventoryAlerts from "../components/InventoryAlerts";
 import LogisticsHub from "../components/LogisticsHub";
 
 export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchReports = async () => {
+    try {
+      const res = await fetch("/api/reports");
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setError("Unauthorized to access reports dashboard.");
+          return;
+        }
+        throw new Error("Failed to fetch dashboard reports");
+      }
+      const reportData = await res.json();
+      setData(reportData);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load reports:", err);
+      setError("Failed to load reports. Please try logging in again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 text-gray-900">
 
       <div className="flex min-h-screen">
 
@@ -23,26 +55,38 @@ export default function Dashboard() {
             {/* Navbar */}
             <Navbar />
 
-            {/* Stats */}
-            <StatsCards />
+            {loading ? (
+              <div className="flex justify-center items-center h-[50vh] mt-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mt-8">
+                {error}
+              </div>
+            ) : (
+              <>
+                {/* Stats */}
+                <StatsCards stats={data?.stats} />
 
-            {/* Orders + Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                {/* Orders + Chart */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
-              <ActiveOrders />
+                  <ActiveOrders orders={data?.activeOrders} />
 
-              <OrderVolume />
+                  <OrderVolume volume={data?.dailyVolume} summary={data?.weeklySummary} />
 
-            </div>
+                </div>
 
-            {/* Inventory + Logistics */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                {/* Inventory + Logistics */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
-              <InventoryAlerts />
+                  <InventoryAlerts initialAlerts={data?.alerts} onRestockSuccess={fetchReports} />
 
-              <LogisticsHub />
+                  <LogisticsHub />
 
-            </div>
+                </div>
+              </>
+            )}
 
           </div>
 
@@ -52,4 +96,4 @@ export default function Dashboard() {
 
     </div>
   );
-}
+}
