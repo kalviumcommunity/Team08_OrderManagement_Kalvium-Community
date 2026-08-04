@@ -18,7 +18,15 @@ export async function POST(req) {
       );
     }
 
-    const { name, email, password, role } = validation.data;
+    const {
+      name,
+      restaurantName,
+      phone,
+      businessType,
+      email,
+      password,
+      role,
+    } = validation.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -32,13 +40,16 @@ export async function POST(req) {
       );
     }
 
-    const finalRole = role || "CUSTOMER";
+    const finalRole = role || "OWNER";
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user in database
     const user = await prisma.user.create({
       data: {
         name,
+        restaurantName,
+        phone,
+        businessType,
         email,
         passwordHash: hashedPassword,
         role: finalRole,

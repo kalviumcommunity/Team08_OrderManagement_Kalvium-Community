@@ -33,15 +33,11 @@ const router = useRouter();
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  console.log("Login button clicked");
-
   if (!isFormValid) return;
 
   setError("");
 
   try {
-    console.log("Calling login API...");
-
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
@@ -55,15 +51,10 @@ const router = useRouter();
 
     const data = await response.json();
 
-    console.log(response.status);
-    console.log(data);
-
     if (!response.ok) {
       setError(data.error);
       return;
     }
-
-    console.log("Login Success:", data);
 
     // Store user information for UI (optional)
     localStorage.setItem("user", JSON.stringify(data.user));

@@ -1,18 +1,16 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import RestockModal from '@/app/components/inventory/RestockModal';
 import RestockHistory from '@/app/components/inventory/RestockHistory';
 
-export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }) {
+export default function InventoryAlerts({ products = [], onRestockSuccess }) {
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [restockHistory, setRestockHistory] = useState([]);
-  const [alerts, setAlerts] = useState(initialAlerts);
-
-  useEffect(() => {
-    setAlerts(initialAlerts);
-  }, [initialAlerts]);
+  const alerts = products.filter(
+    (product) => product.stock < product.lowStockThreshold
+  );
 
   const handleRestock = (item) => {
     setSelectedItem(item);
@@ -25,51 +23,28 @@ export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }
     try {
       const response = await fetch("/api/products", {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId: selectedItem.id,
           changeAmount: receivedQty,
-          reason: `Restocked ${receivedQty} units via dashboard alert`,
+          reason: "Restocked",
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Failed to update stock");
+        alert(data.error);
+        return;
       }
 
-      const updatedAlerts = alerts
-        .map((item) => {
-          if (item.id !== selectedItem.id) {
-            return item;
-          }
-
-          const newStock = Math.min(item.stock + receivedQty, item.totalStock);
-          const percentage = (newStock / item.totalStock) * 100;
-
-          let status = 'In Stock';
-
-          if (percentage <= 10) {
-            status = 'Low Stock';
-          } else if (percentage <= 30) {
-            status = 'Medium Stock';
-          }
-
-          return {
-            ...item,
-            stock: newStock,
-            status,
-          };
-        })
-        .filter((item) => item.status !== 'In Stock');
-
-      setAlerts(updatedAlerts);
       setRestockHistory((prev) => [
         {
           id: Date.now(),
-          product: selectedItem.product,
+          product: selectedItem.name,
           previousStock: selectedItem.stock,
           receivedQty,
           newStock: selectedItem.stock + receivedQty,
@@ -78,15 +53,14 @@ export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }
         ...prev,
       ]);
 
+      setShowRestockModal(false);
+      setSelectedItem(null);
+
       if (onRestockSuccess) {
         onRestockSuccess();
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to restock: " + err.message);
-    } finally {
-      setShowRestockModal(false);
-      setSelectedItem(null);
     }
   };
 
@@ -121,8 +95,8 @@ export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }
               <div key={item.id} className="border rounded-xl p-4 hover:shadow-md transition">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <div>
-                    <h3 className="font-semibold text-lg">{item.product}</h3>
-                    <p className="text-sm text-gray-500">SKU: {item.sku}</p>
+                    <h3 className="font-semibold text-lg">{item.name}</h3>
+                    <p className="text-sm text-gray-500">Product ID: {item.id.slice(0, 8)}</p>
                   </div>
 
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full w-fit ${badgeClass}`}>
@@ -133,7 +107,7 @@ export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }
                 <div className="mt-4">
                   <div className="flex justify-between text-sm mb-2">
                     <span>Stock Remaining</span>
-                    <span className={`font-medium ${stockClass}`}>{item.stock.toFixed(1)} kg</span>
+                    <span className={`font-medium ${stockClass}`}>{item.stock}</span>
                   </div>
 
                   <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -145,13 +119,13 @@ export default function InventoryAlerts({ initialAlerts = [], onRestockSuccess }
                 </div>
 
                 <div className="mt-5 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                  <p className="text-sm text-gray-500">{item.message}</p>
+<p className="text-sm text-gray-500">Low stock threshold: {item.lowStockThreshold}</p>
 
                   <button
                     onClick={() => handleRestock(item)}
-                    disabled={item.stock >= item.totalStock}
+                    disabled={item.stock >= item.lowStockThreshold * 2}
                     className={`px-4 py-2 rounded-lg font-medium transition ${
-                      item.stock >= item.totalStock
+                      item.stock >= item.lowStockThreshold * 2
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         : 'bg-indigo-600 text-white hover:bg-indigo-700'
                     }`}

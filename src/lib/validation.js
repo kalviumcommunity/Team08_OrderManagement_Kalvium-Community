@@ -1,10 +1,15 @@
 import { z } from "zod";
 
 export const registerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-  role: z.enum(["CUSTOMER", "OWNER", "MANAGER", "AUDITOR"]).optional().transform((val) => val?.toUpperCase()),
+  name: z.string().min(1, "Owner name is required"),
+  restaurantName: z.string().min(1, "Restaurant name is required"),
+  phone: z.string().min(10, "Phone number is required"),
+  businessType: z.string().min(1, "Business type is required"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6),
+  role: z
+    .enum(["CUSTOMER", "OWNER", "MANAGER", "AUDITOR"])
+    .optional(),
 });
 
 export const orderItemSchema = z.object({

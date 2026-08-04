@@ -9,14 +9,22 @@ generator client {
 
 model User {
   id                   String         @id @default(uuid())
+
   name                 String
+  restaurantName       String
+  phone                String
+  businessType         String
+
   email                String         @unique
   passwordHash         String
-  role                 String         @default("CUSTOMER") // Role types: "CUSTOMER", "OWNER", "MANAGER", "AUDITOR"
+  role                 String         @default("OWNER")
+
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   refreshToken         String?
+
   createdAt            DateTime       @default(now())
+
   orders               Order[]
   inventoryLogs        InventoryLog[]
 }
