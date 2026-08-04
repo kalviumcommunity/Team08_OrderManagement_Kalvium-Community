@@ -11,6 +11,8 @@ import LogisticsHub from "../components/LogisticsHub";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -30,13 +32,72 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Failed to load reports:", err);
       setError("Failed to load reports. Please try logging in again.");
-    } finally {
-      setLoading(false);
     }
   };
 
+  async function fetchOrders() {
+    try {
+      const res = await fetch("/api/orders", {
+        credentials: "include",
+      });
+
+      const responseData = await res.json();
+
+      if (res.ok) {
+        setOrders(responseData.orders || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function fetchProducts() {
+    try {
+      const res = await fetch("/api/products", {
+        credentials: "include",
+      });
+
+      const responseData = await res.json();
+
+      if (res.ok) {
+        setProducts(responseData.products || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   useEffect(() => {
-    fetchReports();
+    const loadDashboard = async () => {
+      await Promise.all([fetchReports(), fetchOrders(), fetchProducts()]);
+      setLoading(false);
+    };
+
+    loadDashboard();
+  }, []);
+
+  useEffect(() => {
+    const eventSource = new EventSource("/api/events");
+
+    eventSource.addEventListener("ORDER_CREATED", () => {
+      fetchOrders();
+    });
+
+    eventSource.addEventListener("ORDER_UPDATED", () => {
+      fetchOrders();
+    });
+
+    eventSource.addEventListener("STOCK_UPDATED", () => {
+      fetchProducts();
+    });
+
+    eventSource.addEventListener("LOW_STOCK_ALERT", () => {
+      fetchProducts();
+    });
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   return (
@@ -71,16 +132,16 @@ export default function Dashboard() {
                 {/* Orders + Chart */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
-                  <ActiveOrders orders={data?.activeOrders} />
+                  <ActiveOrders orders={orders.slice(0, 5)} />
 
-                  <OrderVolume volume={data?.dailyVolume} summary={data?.weeklySummary} />
+                  <OrderVolume orders={orders} />
 
                 </div>
 
                 {/* Inventory + Logistics */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
-                  <InventoryAlerts initialAlerts={data?.alerts} onRestockSuccess={fetchReports} />
+                  <InventoryAlerts products={products} onRestockSuccess={fetchProducts} />
 
                   <LogisticsHub />
 
@@ -96,4 +157,4 @@ export default function Dashboard() {
 
     </div>
   );
-}
+}

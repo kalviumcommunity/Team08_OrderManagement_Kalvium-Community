@@ -53,6 +53,9 @@ const router = useRouter();
       },
       body: JSON.stringify({
         name: form.owner,
+        restaurantName: form.restaurant,
+        phone: form.phone,
+        businessType: form.business,
         email: form.email,
         password: form.password,
         role: "OWNER",

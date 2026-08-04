@@ -1,13 +1,13 @@
 "use client";
 
-export default function ProfileCard() {
-  const profile = {
-    restaurantName: "FoodOps Restaurant",
-    ownerName: "John Doe",
-    email: "restaurant@email.com",
-    phone: "+91 9876543210",
-    businessType: "Restaurant",
-  };
+export default function ProfileCard({ profile, loading = false }) {
+  if (loading || !profile) {
+    return (
+      <div className="bg-white rounded-xl p-10 text-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
@@ -60,7 +60,7 @@ export default function ProfileCard() {
             </p>
 
             <p className="font-semibold text-gray-800">
-              {profile.ownerName}
+              {profile.name}
             </p>
 
           </div>
