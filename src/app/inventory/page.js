@@ -2,7 +2,7 @@
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import InventoryHeader from "../components/inventory/InventoryHeader";
 import InventoryStats from "../components/inventory/InventoryStats";
@@ -14,84 +14,98 @@ import EditItemModal from "@/app/components/inventory/EditItemModal";
 
 export default function InventoryPage() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [inventory, setInventory] = useState([
-    {
-      id: 1,
-      product: "Organic Cherry Tomatoes",
-      subtitle: "Premium Grade A",
-      sku: "TOM-CR-402",
-      barcode: "4202",
-      stock: 420,
-      totalStock: 500,
-      status: "instock",
-      category: "Vegetables",
-    },
-    {
-      id: 2,
-      product: "Whole Milk 1L",
-      subtitle: "Pasteurized / Local Farm",
-      sku: "DRY-MIL-901",
-      barcode: "901",
-      stock: 45,
-      totalStock: 200,
-      status: "lowstock",
-      category: "Dairy & Eggs",
-    },
-    {
-      id: 3,
-      product: "Prime Ribeye Steak",
-      subtitle: "Vacuum Sealed",
-      sku: "MT-RBY-884",
-      barcode: "884",
-      stock: 0,
-      totalStock: 80,
-      status: "outofstock",
-      category: "Meat & Poultry",
-    },
-    {
-      id: 4,
-      product: "Saffron Threads",
-      subtitle: "Premium Imported",
-      sku: "SP-SFR-221",
-      barcode: "221",
-      stock: 12,
-      totalStock: 20,
-      status: "instock",
-      category: "Spices",
-    },
-  ]);
+  const [inventory, setInventory] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/products", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch products");
+        return;
+      }
+
+      const data = await response.json();
+
+      const formattedProducts = data.products.map((product) => {
+        let status = "instock";
+
+        if (product.stock === 0) {
+          status = "outofstock";
+        } else if (product.stock <= product.lowStockThreshold) {
+          status = "lowstock";
+        }
+
+        return {
+          id: product.id,
+          product: product.name,
+          subtitle: product.description || "",
+          sku: product.sku,
+          barcode: product.barcode || "-",
+          stock: product.stock,
+          totalStock: product.maxStock || 100,
+          status,
+          category: product.category || "General",
+        };
+      });
+
+      setInventory(formattedProducts);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleEdit = (item) => {
     setSelectedItem(item);
     setShowEditModal(true);
   };
 
-  const handleSave = (updatedItem) => {
-    const updatedInventory = inventory.map((item) => {
-      if (item.id === updatedItem.id) {
-        const percentage = (updatedItem.stock / updatedItem.totalStock) * 100;
-        let status = "instock";
+  const handleSave = async (updatedItem) => {
+    try {
+      const originalItem = inventory.find(
+        (item) => item.id === updatedItem.id
+      );
 
-        if (percentage === 0) {
-          status = "outofstock";
-        } else if (percentage <= 10) {
-          status = "lowstock";
-        }
+      if (!originalItem) return;
 
-        return {
-          ...updatedItem,
-          status,
-        };
+      const changeAmount = updatedItem.stock - originalItem.stock;
+
+      const response = await fetch("/api/products", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          productId: updatedItem.id,
+          changeAmount,
+          reason: "Stock updated from Inventory Page",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error);
+        return;
       }
 
-      return item;
-    });
+      await fetchProducts();
 
-    setInventory(updatedInventory);
-    setShowEditModal(false);
-    setSelectedItem(null);
+      setShowEditModal(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update stock");
+    }
   };
 
   return (
@@ -137,7 +151,10 @@ export default function InventoryPage() {
             </div>
 
             {showAddModal && (
-              <AddItemModal onClose={() => setShowAddModal(false)} />
+              <AddItemModal
+                onClose={() => setShowAddModal(false)}
+                fetchProducts={fetchProducts}
+              />
             )}
 
             {showEditModal && (

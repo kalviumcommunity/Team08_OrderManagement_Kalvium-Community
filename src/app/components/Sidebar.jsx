@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -14,13 +15,49 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    const confirmLogout = window.confirm("Are you sure you want to logout?");
+  const [profile, setProfile] = useState(null);
 
-    if (!confirmLogout) return;
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/profile", {
+          credentials: "include",
+        });
 
-    router.push("/");
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setProfile(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchProfile();
+  }, []);
+
+  const initials = profile?.name
+    ? profile.name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+    : "U";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      localStorage.removeItem("user");
+
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+    }
   };
+
   return (
     <aside
       className="
@@ -111,15 +148,12 @@ export default function Sidebar() {
         <div className="mt-6 flex items-center justify-center lg:justify-start gap-3">
 
           <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-semibold">
-            AR
+            {initials}
           </div>
 
           <div className="hidden lg:block">
-            <p className="font-semibold text-sm">
-              Alex Rivera
-            </p>
-
-            
+            <p className="font-semibold text-sm">{profile?.name || "Loading..."}</p>
+            <p className="text-xs text-gray-500">{profile?.role || ""}</p>
           </div>
 
         </div>

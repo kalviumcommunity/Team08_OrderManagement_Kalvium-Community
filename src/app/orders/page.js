@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
@@ -10,6 +10,28 @@ import OrderBoard from "../components/orders/OrderBoard";
 
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
+  const [orders, setOrders] = useState([]);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/orders", {
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setOrders(data.orders);
+      }
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -36,7 +58,7 @@ export default function OrdersPage() {
 
             {/* Order Board */}
             <div className="mt-6">
-              <OrderBoard search={search} />
+              <OrderBoard orders={orders} />
             </div>
 
           </div>

@@ -2,9 +2,46 @@
 
 import { useState } from "react";
 
-export default function AddItemModal({ onClose }) {
+export default function AddItemModal({
+  onClose,
+  fetchProducts,
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    sku: "",
+    category: "Vegetables",
+    stock: 100,
+  });
 
-const [stock, setStock] = useState(100);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        name: form.name,
+        sku: form.sku,
+        category: form.category,
+        stock: form.stock,
+        maxStock: 500,
+        lowStockThreshold: 20,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error);
+      return;
+    }
+
+    await fetchProducts();
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -24,7 +61,7 @@ const [stock, setStock] = useState(100);
         </div>
 
         {/* Form */}
-        <form className="grid grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
           {/* Product */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
@@ -32,6 +69,13 @@ const [stock, setStock] = useState(100);
             </label>
             <input
               type="text"
+              value={form.name}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  name: e.target.value,
+                })
+              }
               placeholder="Enter product name"
               className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -44,26 +88,38 @@ const [stock, setStock] = useState(100);
             </label>
             <input
               type="text"
+              value={form.sku}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  sku: e.target.value,
+                })
+              }
               placeholder="Enter SKU"
               className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* Stock */}
- <div>
-      <label className="block mb-2 font-medium text-gray-700">
-        Stock Level: <span className="font-bold">{stock}</span>
-      </label>
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              Stock Level: <span className="font-bold">{form.stock}</span>
+            </label>
 
-      <input
-        type="range"
-        min="0"
-        max="500"
-        value={stock}
-        onChange={(e) => setStock(e.target.value)}
-        className="w-full accent-indigo-600"
-      />
-    </div>
+            <input
+              type="range"
+              min="0"
+              max="500"
+              value={form.stock}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  stock: Number(e.target.value),
+                })
+              }
+              className="w-full accent-indigo-600"
+            />
+          </div>
 
           {/* Status */}
           <div>
@@ -82,7 +138,16 @@ const [stock, setStock] = useState(100);
             <label className="block mb-2 font-medium text-gray-700">
               Category
             </label>
-            <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select
+              value={form.category}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  category: e.target.value,
+                })
+              }
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
               <option>Vegetables</option>
               <option>Fruits</option>
               <option>Dairy</option>

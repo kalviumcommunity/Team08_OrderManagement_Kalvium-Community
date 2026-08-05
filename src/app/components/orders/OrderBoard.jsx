@@ -1,54 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import OrderColumn from "./OrderColumn";
 
-export default function OrderBoard({
-  search,
-}) {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function OrderBoard({ orders = [] }) {
+  const newOrders = orders.filter(
+    (order) => order.status === "PENDING"
+  );
 
-  useEffect(() => {
-    fetchOrders();
-  }, [search]);
+  const preparingOrders = orders.filter(
+    (order) => order.status === "PREPARING"
+  );
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/events");
-
-    eventSource.addEventListener("ORDER_CREATED", () => {
-      fetchOrders();
-    });
-
-    eventSource.addEventListener("ORDER_UPDATED", () => {
-      fetchOrders();
-    });
-
-    return () => {
-      eventSource.close();
-    };
-  }, []);
-
-  async function fetchOrders() {
-    try {
-      const res = await fetch(
-        `/api/orders?search=${encodeURIComponent(search)}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setOrders(data.orders);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const readyOrders = orders.filter(
+    (order) => order.status === "READY"
+  );
 
   async function updateOrderStatus(id, currentStatus) {
     try {
@@ -79,49 +44,9 @@ export default function OrderBoard({
         alert(data.error || "Failed to update order");
         return;
       }
-
-      fetchOrders();
     } catch (err) {
       console.error(err);
     }
-  }
-
-  const formatOrders = (status) => {
-    return orders
-      .filter((order) => order.status === status)
-      .map((order) => ({
-        id: order.id,
-        orderId: order.id.slice(0, 8).toUpperCase(),
-        customer: order.customerName,
-        waitTime: `${Math.floor(
-          (Date.now() - new Date(order.createdAt).getTime()) / 60000
-        )} min`,
-        status: status === "PENDING" ? "new" : status.toLowerCase(),
-        orderType: "delivery",
-        items: order.items.map(
-          (item) => `${item.quantity} × ${item.product.name}`
-        ),
-      }));
-  };
-
-  const newOrders = formatOrders("PENDING");
-  const preparingOrders = formatOrders("PREPARING");
-  const readyOrders = formatOrders("READY");
-
-  if (loading) {
-    return (
-      <div className="text-center py-20 text-gray-500">
-        Loading Orders...
-      </div>
-    );
-  }
-
-  if (!loading && orders.length === 0) {
-    return (
-      <div className="text-center py-20 text-gray-500">
-        No Orders Found
-      </div>
-    );
   }
 
   return (
@@ -133,21 +58,54 @@ export default function OrderBoard({
         <OrderColumn
           title="New Orders"
           color="bg-blue-500"
-          orders={newOrders}
+          orders={newOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "new",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 
         <OrderColumn
           title="Preparing"
           color="bg-yellow-500"
-          orders={preparingOrders}
+          orders={preparingOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "preparing",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 
         <OrderColumn
           title="Ready"
           color="bg-green-500"
-          orders={readyOrders}
+          orders={readyOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "ready",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 
@@ -159,21 +117,54 @@ export default function OrderBoard({
         <OrderColumn
           title="New Orders"
           color="bg-blue-500"
-          orders={newOrders}
+          orders={newOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "new",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 
         <OrderColumn
           title="Preparing"
           color="bg-yellow-500"
-          orders={preparingOrders}
+          orders={preparingOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "preparing",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 
         <OrderColumn
           title="Ready"
           color="bg-green-500"
-          orders={readyOrders}
+          orders={readyOrders.map((order) => ({
+            id: order.id,
+            customer: order.customerName,
+            waitTime: `${Math.floor(
+              (Date.now() - new Date(order.createdAt)) / 60000
+            )} min`,
+            status: "ready",
+            orderType: "delivery",
+            items: order.items.map(
+              (item) => `${item.quantity} × ${item.product.name}`
+            ),
+          }))}
           updateOrderStatus={updateOrderStatus}
         />
 

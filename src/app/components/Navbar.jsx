@@ -1,4 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Navbar() {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/profile", {
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setProfile(data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    }
+
+    fetchProfile();
+  }, []);
+
+  const initials = profile?.name
+    ? profile.name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+    : "U";
+
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
@@ -21,12 +54,14 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold">
-            AR
+            {initials}
           </div>
 
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold">Alex Rivera</p>
-            <p className="text-xs text-gray-500">Ops Lead</p>
+            <p className="text-sm font-semibold">
+              {profile?.name || "Loading..."}
+            </p>
+            <p className="text-xs text-gray-500">{profile?.role || ""}</p>
           </div>
         </div>
 
