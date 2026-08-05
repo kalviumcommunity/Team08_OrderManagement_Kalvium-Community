@@ -7,7 +7,8 @@ import { broadcastSSE } from "@/lib/sse";
 // GET: List all products and their current stock
 export async function GET(req) {
   try {
-    const user = await getUserFromRequest(req);
+    const user = getUserFromRequest(req);
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -60,10 +61,98 @@ export async function GET(req) {
   }
 }
 
+export async function POST(req) {
+  try {
+    const user = await getUserFromRequest(req);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const allowedRoles = ["OWNER", "MANAGER"];
+
+    if (!allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    const {
+      name,
+      description,
+      sku,
+      barcode,
+      category,
+      stock,
+      maxStock,
+      lowStockThreshold,
+    } = await req.json();
+
+    if (!name || !sku || !category) {
+      return NextResponse.json(
+        {
+          error: "Name, SKU and Category are required",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.product.findUnique({
+      where: {
+        sku,
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        {
+          error: "SKU already exists",
+        },
+        { status: 400 }
+      );
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        description,
+        sku,
+        barcode,
+        category,
+        stock: Number(stock),
+        maxStock: Number(maxStock),
+        lowStockThreshold: Number(lowStockThreshold),
+      },
+    });
+
+    return NextResponse.json(
+      {
+        message: "Product created successfully",
+        product,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("POST products error:", error);
+
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH: Direct inventory stock adjustments (restricted to OWNER and MANAGER)
 export async function PATCH(req) {
   try {
-    const user = await getUserFromRequest(req);
+    const user = getUserFromRequest(req);
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
