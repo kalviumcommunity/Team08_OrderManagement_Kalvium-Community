@@ -76,12 +76,14 @@ export async function PATCH(req, { params }) {
       isValidTransition = true;
     } else if (currentStatus === "PREPARING" && nextStatus === "READY") {
       isValidTransition = true;
+    } else if (currentStatus === "READY" && nextStatus === "COMPLETED") {
+      isValidTransition = true;
     }
 
     if (!isValidTransition) {
       return NextResponse.json(
         {
-          error: `Invalid state transition from ${currentStatus} to ${nextStatus}. Sequential flow must be followed: PENDING -> PREPARING -> READY`,
+          error: `Invalid state transition from ${currentStatus} to ${nextStatus}. Sequential flow must be followed: PENDING -> PREPARING -> READY -> COMPLETED`,
         },
         { status: 400 }
       );

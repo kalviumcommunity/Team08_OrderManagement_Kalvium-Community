@@ -2,7 +2,7 @@
 
 import OrderColumn from "./OrderColumn";
 
-export default function OrderBoard({ orders = [] }) {
+export default function OrderBoard({ orders = [], fetchOrders }) {
   const newOrders = orders.filter(
     (order) => order.status === "PENDING"
   );
@@ -14,40 +14,6 @@ export default function OrderBoard({ orders = [] }) {
   const readyOrders = orders.filter(
     (order) => order.status === "READY"
   );
-
-  async function updateOrderStatus(id, currentStatus) {
-    try {
-      let nextStatus = "";
-
-      if (currentStatus === "new") {
-        nextStatus = "PREPARING";
-      } else if (currentStatus === "preparing") {
-        nextStatus = "READY";
-      } else {
-        return;
-      }
-
-      const res = await fetch(`/api/orders/${id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: nextStatus,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || "Failed to update order");
-        return;
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   return (
     <div className="w-full">
@@ -70,7 +36,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
         <OrderColumn
@@ -88,7 +54,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
         <OrderColumn
@@ -106,7 +72,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
       </div>
@@ -129,7 +95,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
         <OrderColumn
@@ -147,7 +113,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
         <OrderColumn
@@ -165,7 +131,7 @@ export default function OrderBoard({ orders = [] }) {
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
-          updateOrderStatus={updateOrderStatus}
+          fetchOrders={fetchOrders}
         />
 
       </div>

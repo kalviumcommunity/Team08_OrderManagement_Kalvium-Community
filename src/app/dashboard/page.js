@@ -81,18 +81,24 @@ export default function Dashboard() {
 
     eventSource.addEventListener("ORDER_CREATED", () => {
       fetchOrders();
+      fetchReports();
+      fetchProducts();
     });
 
     eventSource.addEventListener("ORDER_UPDATED", () => {
       fetchOrders();
+      fetchReports();
+      fetchProducts();
     });
 
     eventSource.addEventListener("STOCK_UPDATED", () => {
       fetchProducts();
+      fetchReports();
     });
 
     eventSource.addEventListener("LOW_STOCK_ALERT", () => {
       fetchProducts();
+      fetchReports();
     });
 
     return () => {
