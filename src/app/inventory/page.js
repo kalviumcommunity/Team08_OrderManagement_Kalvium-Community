@@ -61,6 +61,20 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchProducts();
+
+    const events = new EventSource("/api/events");
+
+    events.addEventListener("STOCK_UPDATED", () => {
+      fetchProducts();
+    });
+
+    events.addEventListener("LOW_STOCK_ALERT", () => {
+      fetchProducts();
+    });
+
+    return () => {
+      events.close();
+    };
   }, []);
 
   const handleEdit = (item) => {

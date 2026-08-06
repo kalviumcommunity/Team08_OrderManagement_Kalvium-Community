@@ -137,6 +137,18 @@ export default function Sidebar() {
   <span>Profile</span>
 </Link>
 
+        <Link
+  href="/order-history"
+  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+    pathname === "/order-history"
+      ? "bg-indigo-600 text-white"
+      : "text-gray-700 hover:bg-gray-100"
+  }`}
+>
+  <FileText size={20} />
+  <span>Order History</span>
+</Link>
+
         </div>
       </div>
 

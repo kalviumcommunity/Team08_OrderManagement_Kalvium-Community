@@ -7,10 +7,13 @@ import Navbar from "../components/Navbar";
 import OrdersHeader from "../components/orders/OrdersHeader";
 
 import OrderBoard from "../components/orders/OrderBoard";
+import NewOrderModal from "../components/orders/NewOrderModal";
+import FloatingButton from "../components/orders/FloatingButton";
 
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [orders, setOrders] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -30,6 +33,20 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+
+    const events = new EventSource("/api/events");
+
+    events.addEventListener("ORDER_CREATED", () => {
+      fetchOrders();
+    });
+
+    events.addEventListener("ORDER_UPDATED", () => {
+      fetchOrders();
+    });
+
+    return () => {
+      events.close();
+    };
   }, []);
 
   return (
@@ -58,7 +75,10 @@ export default function OrdersPage() {
 
             {/* Order Board */}
             <div className="mt-6">
-              <OrderBoard orders={orders} />
+              <OrderBoard
+                orders={orders}
+                fetchOrders={fetchOrders}
+              />
             </div>
 
           </div>
@@ -67,6 +87,16 @@ export default function OrdersPage() {
 
       </div>
 
+      <FloatingButton
+        onClick={() => setShowModal(true)}
+      />
+
+      {showModal && (
+        <NewOrderModal
+          onClose={() => setShowModal(false)}
+          fetchOrders={fetchOrders}
+        />
+      )}
 
     </div>
   );

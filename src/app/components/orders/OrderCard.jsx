@@ -9,13 +9,12 @@ import {
 
 export default function OrderCard({
   id,
-  orderId,
   customer,
   items,
   waitTime,
   status,
   orderType,
-  updateOrderStatus,
+  fetchOrders,
 }) {
   const buttonStyles = {
     new: "bg-blue-600 hover:bg-blue-700 text-white",
@@ -41,6 +40,42 @@ const typeText = {
   dinein: "Dine In",
 };
 
+  const handleStatusUpdate = async () => {
+    let nextStatus = "";
+
+    if (status === "new") {
+      nextStatus = "PREPARING";
+    } else if (status === "preparing") {
+      nextStatus = "READY";
+    } else if (status === "ready") {
+      nextStatus = "COMPLETED";
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          status: nextStatus,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error);
+        return;
+      }
+
+      await fetchOrders();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 p-5">
 
@@ -49,7 +84,7 @@ const typeText = {
 
   <div>
     <h3 className="font-bold text-gray-900">
-      #{orderId}
+      #{id.slice(0, 8)}
     </h3>
 
     <span
@@ -125,11 +160,8 @@ const typeText = {
 
       {/* Action */}
       <button
-        onClick={() => updateOrderStatus(id, status)}
-        disabled={status === "ready"}
-        className={`mt-6 w-full rounded-xl py-3 font-medium transition ${
-          buttonStyles[status]
-        } ${status === "ready" ? "opacity-60 cursor-not-allowed" : ""}`}
+        onClick={handleStatusUpdate}
+        className={`mt-6 w-full rounded-xl py-3 font-medium transition ${buttonStyles[status]}`}
       >
 
         <div className="flex items-center justify-center gap-2">

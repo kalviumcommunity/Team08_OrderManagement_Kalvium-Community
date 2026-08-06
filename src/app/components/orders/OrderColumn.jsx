@@ -6,7 +6,7 @@ export default function OrderColumn({
   title,
   color,
   orders,
-  updateOrderStatus,
+  fetchOrders,
 }) {
   return (
     <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 h-fit">
@@ -39,13 +39,12 @@ export default function OrderColumn({
           <OrderCard
             key={order.id}
             id={order.id}
-            orderId={order.orderId}
             customer={order.customer}
             items={order.items}
             waitTime={order.waitTime}
             status={order.status}
             orderType={order.orderType}
-            updateOrderStatus={updateOrderStatus}
+            fetchOrders={fetchOrders}
           />
         ))}
 
