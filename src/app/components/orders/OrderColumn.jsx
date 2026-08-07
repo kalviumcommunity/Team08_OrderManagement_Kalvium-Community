@@ -44,6 +44,8 @@ export default function OrderColumn({
             waitTime={order.waitTime}
             status={order.status}
             orderType={order.orderType}
+            orders={orders}
+            setOrders={setOrders}
             fetchOrders={fetchOrders}
           />
         ))}

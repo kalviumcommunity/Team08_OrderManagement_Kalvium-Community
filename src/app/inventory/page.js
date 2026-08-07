@@ -2,7 +2,7 @@
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import InventoryHeader from "../components/inventory/InventoryHeader";
 import InventoryStats from "../components/inventory/InventoryStats";
@@ -17,12 +17,16 @@ export default function InventoryPage() {
   const [inventory, setInventory] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const response = await fetch("/api/products", {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/api/products?search=${encodeURIComponent(search)}`,
+        {
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         console.error("Failed to fetch products");
@@ -57,7 +61,7 @@ export default function InventoryPage() {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [search]);
 
   useEffect(() => {
     fetchProducts();
@@ -75,7 +79,7 @@ export default function InventoryPage() {
     return () => {
       events.close();
     };
-  }, []);
+  }, [fetchProducts]);
 
   const handleEdit = (item) => {
     setSelectedItem(item);
@@ -137,7 +141,10 @@ export default function InventoryPage() {
           <div className="p-4 sm:p-6 lg:p-8">
 
             {/* Navbar */}
-            <Navbar />
+            <Navbar
+              search={search}
+              setSearch={setSearch}
+            />
 
             {/* Header */}
             <div className="mt-6">

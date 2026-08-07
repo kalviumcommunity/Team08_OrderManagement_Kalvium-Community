@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-export default function Navbar() {
+export default function Navbar({
+  search,
+  setSearch,
+}) {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
@@ -36,13 +39,17 @@ export default function Navbar() {
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
       {/* Search Bar */}
-      <div className="w-full md:max-w-md lg:max-w-lg">
-        <input
-          type="text"
-          placeholder="Search orders, SKUs, or customers..."
-          className="w-full h-11 rounded-xl border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-      </div>
+      {typeof search === "string" && typeof setSearch === "function" && (
+        <div className="w-full md:max-w-md lg:max-w-lg">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search..."
+            className="w-full h-11 rounded-xl border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+      )}
 
       {/* Right Section */}
       <div className="flex items-center justify-between md:justify-end gap-4">
