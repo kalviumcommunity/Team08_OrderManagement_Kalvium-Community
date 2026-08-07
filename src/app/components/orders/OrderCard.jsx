@@ -14,6 +14,8 @@ export default function OrderCard({
   waitTime,
   status,
   orderType,
+  orders,
+  setOrders,
   fetchOrders,
 }) {
   const buttonStyles = {
@@ -65,12 +67,25 @@ const typeText = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        alert(data.error);
-        return;
-      }
+if (!response.ok) {
+  alert(data.error);
+  return;
+}
 
-      await fetchOrders();
+// Immediately update the UI
+setOrders((prevOrders) =>
+  prevOrders.map((order) => {
+    if (order.id !== id) return order;
+
+    return {
+      ...order,
+      status: nextStatus,
+    };
+  })
+);
+
+// Fetch latest data from server
+await fetchOrders();
     } catch (error) {
       console.error(error);
     }

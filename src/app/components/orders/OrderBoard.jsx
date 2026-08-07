@@ -2,7 +2,13 @@
 
 import OrderColumn from "./OrderColumn";
 
-export default function OrderBoard({ orders = [], fetchOrders }) {
+export default function OrderBoard({
+  orders = [],
+  setOrders,
+  fetchOrders,
+  statusFilter,
+  setStatusFilter,
+}) {
   const newOrders = orders.filter(
     (order) => order.status === "PENDING"
   );
@@ -17,6 +23,51 @@ export default function OrderBoard({ orders = [], fetchOrders }) {
 
   return (
     <div className="w-full">
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setStatusFilter("")}
+          className={`px-4 py-2 rounded-lg ${
+            statusFilter === ""
+              ? "bg-indigo-600 text-white"
+              : "border"
+          }`}
+        >
+          All
+        </button>
+
+        <button
+          onClick={() => setStatusFilter("PENDING")}
+          className={`px-4 py-2 rounded-lg ${
+            statusFilter === "PENDING"
+              ? "bg-indigo-600 text-white"
+              : "border"
+          }`}
+        >
+          Pending
+        </button>
+
+        <button
+          onClick={() => setStatusFilter("PREPARING")}
+          className={`px-4 py-2 rounded-lg ${
+            statusFilter === "PREPARING"
+              ? "bg-indigo-600 text-white"
+              : "border"
+          }`}
+        >
+          Preparing
+        </button>
+
+        <button
+          onClick={() => setStatusFilter("READY")}
+          className={`px-4 py-2 rounded-lg ${
+            statusFilter === "READY"
+              ? "bg-indigo-600 text-white"
+              : "border"
+          }`}
+        >
+          Ready
+        </button>
+      </div>
 
       {/* Desktop / Tablet */}
       <div className="hidden lg:grid lg:grid-cols-3 gap-6">
