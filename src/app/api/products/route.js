@@ -23,9 +23,11 @@ export async function GET(req) {
 
     const where = {};
     if (search) {
-      where.name = {
-        contains: search,
-      };
+      where.OR = [
+        { name: { contains: search } },
+        { sku: { contains: search } },
+        { category: { contains: search } },
+      ];
     }
     if (lowStock) {
       where.stock = {
@@ -193,6 +195,72 @@ export async function PATCH(req) {
     return NextResponse.json(
       { error: error.message || "Internal server error" },
       { status: 400 }
+    );
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const user = await getUserFromRequest(req);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const allowedRoles = ["OWNER", "MANAGER"];
+
+    if (!allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    const { productId } = await req.json();
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.product.delete({
+      where: { id: productId },
+    });
+
+    broadcastSSE("PRODUCT_DELETED", {
+      productId,
+    });
+
+    return NextResponse.json(
+      {
+        message: "Product deleted successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("DELETE product error:", error);
+
+    return NextResponse.json(
+      {
+        error: error.message || "Failed to delete product",
+      },
+      { status: 500 }
     );
   }
 }

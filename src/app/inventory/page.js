@@ -15,75 +15,160 @@ import EditItemModal from "@/app/components/inventory/EditItemModal";
 export default function InventoryPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [inventory, setInventory] = useState([]);
+  const [stats, setStats] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchInventoryStats = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/products?search=${encodeURIComponent(search)}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        console.error("Failed to fetch products");
-        return;
-      }
+      const response = await fetch("/api/products/stats", {
+        credentials: "include",
+      });
 
       const data = await response.json();
 
+      if (!response.ok) {
+        console.error(data.error);
+        return;
+      }
+
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to fetch inventory stats:", error);
+    }
+  }, []);
+
+  const fetchProducts = useCallback(async (
+    searchValue = search,
+    currentPage = page
+  ) => {
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "10",
+      });
+
+      if (searchValue.trim()) {
+        params.set("search", searchValue);
+      }
+
+      const response = await fetch(`/api/products?${params.toString()}`, {
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data.error);
+        return;
+      }
+
       const formattedProducts = data.products.map((product) => {
-        let status = "instock";
-
-        if (product.stock === 0) {
-          status = "outofstock";
-        } else if (product.stock <= product.lowStockThreshold) {
-          status = "lowstock";
-        }
-
         return {
           id: product.id,
-          product: product.name,
-          subtitle: product.description || "",
+          name: product.name,
+          description: product.description,
           sku: product.sku,
           barcode: product.barcode || "-",
           stock: product.stock,
-          totalStock: product.maxStock || 100,
-          status,
+          maxStock: product.maxStock || 100,
+          lowStockThreshold: product.lowStockThreshold,
           category: product.category || "General",
         };
       });
 
       setInventory(formattedProducts);
+      setPagination(data.pagination);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch products:", error);
     }
-  }, [search]);
+  }, [page, search]);
+
+  const refreshInventoryData = useCallback(async () => {
+    await Promise.all([
+      fetchProducts(search),
+      fetchInventoryStats(),
+    ]);
+  }, [fetchProducts, fetchInventoryStats, search]);
 
   useEffect(() => {
-    fetchProducts();
+    refreshInventoryData();
+  }, [refreshInventoryData]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPage(1);
+      fetchProducts(search, 1);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [fetchProducts, search]);
+
+  useEffect(() => {
+    fetchProducts(search, page);
+  }, [fetchProducts, page, search]);
+
+  useEffect(() => {
     const events = new EventSource("/api/events");
 
     events.addEventListener("STOCK_UPDATED", () => {
-      fetchProducts();
+      refreshInventoryData();
     });
 
     events.addEventListener("LOW_STOCK_ALERT", () => {
-      fetchProducts();
+      refreshInventoryData();
     });
 
     return () => {
       events.close();
     };
-  }, [fetchProducts]);
+  }, [refreshInventoryData]);
 
   const handleEdit = (item) => {
     setSelectedItem(item);
     setShowEditModal(true);
+  };
+
+  const handleDelete = async (item) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${item.name}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch("/api/products", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          productId: item.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to delete product");
+        return;
+      }
+
+      const isLastItemOnPage = inventory.length === 1;
+
+      if (isLastItemOnPage && page > 1) {
+        setPage(page - 1);
+      } else {
+        await refreshInventoryData();
+      }
+    } catch (error) {
+      console.error("Delete product error:", error);
+      alert("Something went wrong while deleting the product");
+    }
   };
 
   const handleSave = async (updatedItem) => {
@@ -116,7 +201,7 @@ export default function InventoryPage() {
         return;
       }
 
-      await fetchProducts();
+      await refreshInventoryData();
 
       setShowEditModal(false);
       setSelectedItem(null);
@@ -153,7 +238,7 @@ export default function InventoryPage() {
 
             {/* Statistics */}
             <div className="mt-6">
-              <InventoryStats />
+              <InventoryStats stats={stats} />
             </div>
 
             
@@ -163,18 +248,26 @@ export default function InventoryPage() {
               <InventoryTable
                 inventory={inventory}
                 onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             </div>
 
             {/* Pagination */}
             <div className="mt-6">
-              <Pagination />
+              <Pagination
+                pagination={pagination}
+                onPageChange={setPage}
+              />
             </div>
 
             {showAddModal && (
               <AddItemModal
                 onClose={() => setShowAddModal(false)}
-                fetchProducts={fetchProducts}
+                onSuccess={async () => {
+                  setPage(1);
+                  await fetchProducts(search, 1);
+                  await fetchInventoryStats();
+                }}
               />
             )}
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Apple } from "lucide-react";
+import { Mail } from "lucide-react";
 import PasswordInput from "./PasswordInput";
 
 export default function LoginForm() {
@@ -84,46 +84,6 @@ const router = useRouter();
 
       </div>
 
-      {/* Social Buttons */}
-
-      <div className="grid grid-cols-2 gap-4 mt-8">
-
-        <button
-          type="button"
-          className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 py-3 font-medium hover:bg-gray-100 transition"
-        >
-          <span className="text-lg font-bold">G</span>
-
-          Google
-
-        </button>
-
-        <button
-          type="button"
-          className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 py-3 font-medium hover:bg-gray-100 transition"
-        >
-          <Apple size={20} />
-
-          Apple
-
-        </button>
-
-      </div>
-
-      {/* Divider */}
-
-      <div className="flex items-center my-8">
-
-        <div className="flex-1 border-t"></div>
-
-        <span className="px-4 text-xs font-semibold tracking-[4px] text-gray-400">
-          OR CONTINUE WITH EMAIL
-        </span>
-
-        <div className="flex-1 border-t"></div>
-
-      </div>
-
       {/* Form */}
 
       {error && (
@@ -134,7 +94,7 @@ const router = useRouter();
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="mt-8 space-y-6"
       >
 
         {/* Email */}

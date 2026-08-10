@@ -147,7 +147,13 @@ export default function Dashboard() {
                 {/* Inventory + Logistics */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
 
-                  <InventoryAlerts products={products} onRestockSuccess={fetchProducts} />
+                  <InventoryAlerts
+                    products={products}
+                    onRestockSuccess={async () => {
+                      await fetchProducts();
+                      await fetchReports();
+                    }}
+                  />
 
                   <LogisticsHub />
 

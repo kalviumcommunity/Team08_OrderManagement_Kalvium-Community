@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 export async function POST(req) {
   try {
@@ -39,15 +40,51 @@ export async function POST(req) {
       },
     });
 
-    console.log(`[Forgot Password] Simulated Email Sent to ${email} with token: ${resetToken}`);
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Licious" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset your Licious password",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Reset Your Password</h2>
+          <p>You requested a password reset for your Licious account.</p>
+          <p>This link will expire in 1 hour.</p>
+
+          <a
+            href="${resetUrl}"
+            style="
+              display: inline-block;
+              margin-top: 16px;
+              padding: 12px 20px;
+              background-color: #4f46e5;
+              color: white;
+              text-decoration: none;
+              border-radius: 8px;
+            "
+          >
+            Reset Password
+          </a>
+
+          <p style="margin-top: 20px;">
+            If you did not request this password reset, you can safely ignore this email.
+          </p>
+        </div>
+      `,
+    });
 
     return NextResponse.json(
       {
         message: "If that email exists, we have sent a password reset token.",
-        debug: {
-          resetToken,
-          expires,
-        },
       },
       { status: 200 }
     );

@@ -5,23 +5,30 @@ import { Pencil, Trash2 } from "lucide-react";
 export default function InventoryRow({
   item,
   onEdit,
+  onDelete,
 }) {
   const {
-    image,
-    product,
-    subtitle,
+    name,
+    description,
     sku,
     barcode,
     stock,
-    totalStock,
-    status,
+    maxStock,
     category,
   } = item;
 
   const percentage = Math.min(
-    Math.round((stock / totalStock) * 100),
+    Math.round((stock / maxStock) * 100),
     100
   );
+
+  let status = "instock";
+
+  if (stock === 0) {
+    status = "outofstock";
+  } else if (stock <= item.lowStockThreshold) {
+    status = "lowstock";
+  }
 
   const statusStyle = {
     instock: "bg-green-100 text-green-700",
@@ -57,11 +64,11 @@ export default function InventoryRow({
           <div>
 
             <p className="font-semibold text-gray-800">
-              {product}
+              {name}
             </p>
 
             <p className="text-xs text-gray-500">
-              {subtitle}
+              {description || "No description"}
             </p>
 
             
@@ -89,7 +96,7 @@ export default function InventoryRow({
       <td className="px-4 py-4">
 
         <p className="text-sm font-medium mb-2">
-          {stock} / {totalStock}
+          {stock} / {maxStock}
         </p>
 
         <div className="w-28 h-2 bg-gray-200 rounded-full">
@@ -131,7 +138,10 @@ export default function InventoryRow({
             <Pencil size={18} />
           </button>
 
-          <button className="text-gray-500 hover:text-red-600 transition">
+          <button
+            onClick={() => onDelete(item)}
+            className="text-gray-500 hover:text-red-600 transition"
+          >
             <Trash2 size={18} />
           </button>
 

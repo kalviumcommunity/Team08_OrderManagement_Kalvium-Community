@@ -24,6 +24,14 @@ export default function EditItemModal({
     });
   };
 
+  let status = "In Stock";
+
+  if (stock === 0) {
+    status = "Out of Stock";
+  } else if (stock <= item.lowStockThreshold) {
+    status = "Low Stock";
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
@@ -53,7 +61,7 @@ export default function EditItemModal({
             </label>
 
             <input
-              value={item.product}
+              value={item.name}
               disabled
               className="w-full border rounded-lg px-4 py-3 bg-gray-100"
             />
@@ -69,12 +77,12 @@ export default function EditItemModal({
             <input
               type="number"
               min="0"
-              max={item.totalStock}
+              max={item.maxStock}
               value={stock}
               onChange={(e) => {
                 const nextValue = Number(e.target.value);
                 if (Number.isNaN(nextValue)) return;
-                setStock(Math.min(item.totalStock, Math.max(0, nextValue)));
+                setStock(Math.min(item.maxStock, Math.max(0, nextValue)));
               }}
               className="w-full border rounded-lg px-4 py-3"
             />
@@ -83,7 +91,13 @@ export default function EditItemModal({
               Current Stock : {item.stock}
             </p>
             <p className="text-sm text-gray-500">
-              Maximum Capacity : {item.totalStock}
+              Maximum Capacity : {item.maxStock}
+            </p>
+            <p className="text-sm text-gray-500">
+              Status:{" "}
+              <span className="font-medium text-gray-700">
+                {status}
+              </span>
             </p>
 
           </div>
