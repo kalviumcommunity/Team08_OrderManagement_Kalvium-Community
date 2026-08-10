@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth-helper";
 import { listInventoryLogs } from "@/lib/services/inventory-service";

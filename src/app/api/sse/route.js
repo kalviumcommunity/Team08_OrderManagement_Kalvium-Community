@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { addSSEClient } from "@/lib/sse";
 
 export async function GET(req) {
