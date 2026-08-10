@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchReports = async () => {
     try {
@@ -83,12 +84,14 @@ export default function Dashboard() {
       fetchOrders();
       fetchReports();
       fetchProducts();
+      setRefreshKey((prev) => prev + 1);
     });
 
     eventSource.addEventListener("ORDER_UPDATED", () => {
       fetchOrders();
       fetchReports();
       fetchProducts();
+      setRefreshKey((prev) => prev + 1);
     });
 
     eventSource.addEventListener("STOCK_UPDATED", () => {
@@ -155,7 +158,7 @@ export default function Dashboard() {
                     }}
                   />
 
-                  <LogisticsHub />
+                  <LogisticsHub refreshKey={refreshKey} />
 
                 </div>
               </>

@@ -87,6 +87,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 
@@ -105,6 +106,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 
@@ -123,6 +125,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 
@@ -146,6 +149,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 
@@ -164,6 +168,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 
@@ -182,6 +187,7 @@ export default function OrderBoard({
               (item) => `${item.quantity} × ${item.product.name}`
             ),
           }))}
+          setOrders={setOrders}
           fetchOrders={fetchOrders}
         />
 

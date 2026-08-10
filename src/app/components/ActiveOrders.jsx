@@ -3,23 +3,11 @@ export default function ActiveOrders({ orders = [] }) {
     <div className="col-span-1 lg:col-span-2 bg-white border rounded-xl shadow-sm p-5 text-gray-900">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-5">
+      <div className="flex items-center justify-between mb-6">
 
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-xl font-semibold text-gray-800">
           Active Orders
         </h2>
-
-        <div className="flex gap-3">
-
-          <button className="border rounded-lg px-3 py-2 text-sm hover:bg-gray-100 transition">
-            Filter
-          </button>
-
-          <button className="border rounded-lg px-3 py-2 text-sm hover:bg-gray-100 transition">
-            Export
-          </button>
-
-        </div>
 
       </div>
 

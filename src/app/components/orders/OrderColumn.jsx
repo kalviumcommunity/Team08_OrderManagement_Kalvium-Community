@@ -6,6 +6,7 @@ export default function OrderColumn({
   title,
   color,
   orders,
+  setOrders,
   fetchOrders,
 }) {
   return (

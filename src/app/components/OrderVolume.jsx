@@ -22,15 +22,11 @@ export default function OrderVolume({ orders = [] }) {
     <div className="bg-white border rounded-xl shadow-sm p-5 text-gray-900">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-4">
 
         <h2 className="text-lg font-semibold">
           Daily Order Volume
         </h2>
-
-        <button className="text-sm text-indigo-600 hover:underline">
-          View Report
-        </button>
 
       </div>
 
