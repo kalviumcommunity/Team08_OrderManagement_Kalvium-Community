@@ -109,10 +109,7 @@ export default function OrdersPage() {
 
             {/* Page Header */}
             <div className="mt-6">
-              <OrdersHeader
-                search={search}
-                setSearch={setSearch}
-              />
+              <OrdersHeader />
             </div>
 
             {/* Order Board */}
