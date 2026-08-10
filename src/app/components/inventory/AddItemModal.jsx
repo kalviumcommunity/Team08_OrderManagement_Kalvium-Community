@@ -4,43 +4,57 @@ import { useState } from "react";
 
 export default function AddItemModal({
   onClose,
-  fetchProducts,
+  onSuccess,
 }) {
-  const [form, setForm] = useState({
-    name: "",
-    sku: "",
-    category: "Vegetables",
-    stock: 100,
-  });
+  const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
+  const [stock, setStock] = useState(100);
+  const [maxStock, setMaxStock] = useState(500);
+  const [category, setCategory] = useState("Vegetables");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch("/api/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        name: form.name,
-        sku: form.sku,
-        category: form.category,
-        stock: form.stock,
-        maxStock: 500,
-        lowStockThreshold: 20,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.error);
+    if (!name.trim() || !sku.trim()) {
+      alert("Product name and SKU are required");
       return;
     }
 
-    await fetchProducts();
-    onClose();
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name,
+          sku,
+          stock: Number(stock),
+          maxStock: Number(maxStock),
+          lowStockThreshold: Math.max(1, Math.floor(Number(maxStock) * 0.1)),
+          category,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to add product");
+        return;
+      }
+
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Add product error:", error);
+      alert("Something went wrong while adding the product");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,7 +75,10 @@ export default function AddItemModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-2 gap-6"
+        >
           {/* Product */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
@@ -69,13 +86,8 @@ export default function AddItemModal({
             </label>
             <input
               type="text"
-              value={form.name}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  name: e.target.value,
-                })
-              }
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Enter product name"
               className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -88,13 +100,8 @@ export default function AddItemModal({
             </label>
             <input
               type="text"
-              value={form.sku}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  sku: e.target.value,
-                })
-              }
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
               placeholder="Enter SKU"
               className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -103,34 +110,38 @@ export default function AddItemModal({
           {/* Stock */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
-              Stock Level: <span className="font-bold">{form.stock}</span>
+              Stock Level: <span className="font-bold">{stock}</span>
             </label>
 
             <input
               type="range"
               min="0"
-              max="500"
-              value={form.stock}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  stock: Number(e.target.value),
-                })
-              }
+              max={maxStock}
+              value={stock}
+              onChange={(e) => setStock(Number(e.target.value))}
               className="w-full accent-indigo-600"
             />
           </div>
 
-          {/* Status */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
-              Status
+              Maximum Stock
             </label>
-            <select className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option>In Stock</option>
-              <option>Low Stock</option>
-              <option>Out of Stock</option>
-            </select>
+
+            <input
+              type="number"
+              min="1"
+              value={maxStock}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setMaxStock(value);
+
+                if (stock > value) {
+                  setStock(value);
+                }
+              }}
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
           </div>
 
           {/* Category */}
@@ -139,13 +150,8 @@ export default function AddItemModal({
               Category
             </label>
             <select
-              value={form.category}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  category: e.target.value,
-                })
-              }
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option>Vegetables</option>
@@ -169,9 +175,10 @@ export default function AddItemModal({
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+              disabled={loading}
+              className="px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
             >
-              Add Item
+              {loading ? "Adding..." : "Add Item"}
             </button>
           </div>
         </form>

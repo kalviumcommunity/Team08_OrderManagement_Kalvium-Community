@@ -17,53 +17,6 @@ export default function InventoryAlerts({ products = [], onRestockSuccess }) {
     setShowRestockModal(true);
   };
 
-  const handleConfirmRestock = async (receivedQty) => {
-    if (!selectedItem) return;
-
-    try {
-      const response = await fetch("/api/products", {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: selectedItem.id,
-          changeAmount: receivedQty,
-          reason: "Restocked",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error);
-        return;
-      }
-
-      setRestockHistory((prev) => [
-        {
-          id: Date.now(),
-          product: selectedItem.name,
-          previousStock: selectedItem.stock,
-          receivedQty,
-          newStock: selectedItem.stock + receivedQty,
-          date: new Date().toLocaleString(),
-        },
-        ...prev,
-      ]);
-
-      setShowRestockModal(false);
-      setSelectedItem(null);
-
-      if (onRestockSuccess) {
-        onRestockSuccess();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <div className="col-span-1 lg:col-span-2 bg-white rounded-xl border shadow-sm p-5 text-gray-900">
 
@@ -146,7 +99,9 @@ export default function InventoryAlerts({ products = [], onRestockSuccess }) {
             setShowRestockModal(false);
             setSelectedItem(null);
           }}
-          onConfirm={handleConfirmRestock}
+          onSuccess={async () => {
+            await onRestockSuccess?.();
+          }}
         />
       )}
 

@@ -133,7 +133,7 @@ const router = useRouter();
               required
               value={form.restaurant}
               onChange={handleChange}
-              placeholder="FoodOps Restaurant"
+              placeholder="Licious Restaurant"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
 

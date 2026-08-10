@@ -2,7 +2,11 @@
 
 import InventoryRow from "./InventoryRow";
 
-export default function InventoryTable({ inventory, onEdit }) {
+export default function InventoryTable({
+  inventory,
+  onEdit,
+  onDelete,
+}) {
   return (
     <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
 
@@ -56,6 +60,7 @@ export default function InventoryTable({ inventory, onEdit }) {
                 key={item.id}
                 item={item}
                 onEdit={onEdit}
+                onDelete={onDelete}
               />
             ))}
 
