@@ -239,9 +239,35 @@ export async function DELETE(req) {
       );
     }
 
-    await prisma.product.delete({
-      where: { id: productId },
+    const orderItemCount = await prisma.orderItem.count({
+      where: {
+        productId,
+      },
     });
+
+    if (orderItemCount > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This product cannot be deleted because it is used in existing orders.",
+        },
+        { status: 400 }
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.inventoryLog.deleteMany({
+        where: {
+          productId,
+        },
+      }),
+
+      prisma.product.delete({
+        where: {
+          id: productId,
+        },
+      }),
+    ]);
 
     broadcastSSE("PRODUCT_DELETED", {
       productId,
