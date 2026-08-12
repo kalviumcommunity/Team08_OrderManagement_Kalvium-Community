@@ -4,9 +4,16 @@ import { getUserFromRequest } from "@/lib/auth-helper";
 import { broadcastSSE } from "@/lib/sse";
 import { cancelOrder } from "@/lib/services/order-service";
 
-// PATCH: Sequential order status transition or order cancellation
+/**
+ * PATCH /api/orders/[id]
+ * Updates the state of an existing order.
+ * Supports:
+ * 1. Cancellation (status: "CANCELLED") - refunds inventory stock and emits events
+ * 2. Sequential Status Progression (PENDING -> PREPARING -> READY -> COMPLETED)
+ */
 export async function PATCH(req, { params }) {
   try {
+    // 1. Authenticate requesting user
     const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,9 +29,9 @@ export async function PATCH(req, { params }) {
     const nextStatus = status.toUpperCase();
     const isCancellation = nextStatus === "CANCELLED";
 
-    // 1. Authorization check
-    // Sequential updates are restricted to OWNER/MANAGER. 
-    // Cancellation is allowed for OWNER, MANAGER, or CUSTOMER (checked later in service for customer ownership).
+    // 2. Authorization check
+    // Sequential status progress is restricted to OWNER and MANAGER.
+    // Order cancellation is permitted for OWNER, MANAGER, or CUSTOMER (validated in service).
     const allowedRoles = isCancellation
       ? ["OWNER", "MANAGER", "CUSTOMER"]
       : ["OWNER", "MANAGER"];
@@ -33,14 +40,14 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 2. Process Cancellation
+    // 3. Process Cancellation
     if (isCancellation) {
       const result = await cancelOrder(id, user.id, user.role);
 
-      // Broadcast order update
+      // Broadcast order update to live clients
       broadcastSSE("ORDER_UPDATED", result.order);
 
-      // Broadcast stock updates for each refunded item
+      // Broadcast stock restoration for refunded items
       for (const log of result.logs) {
         broadcastSSE("STOCK_UPDATED", {
           productId: log.productId,
@@ -58,8 +65,7 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // 3. Process Sequential Status Transitions (PENDING -> PREPARING -> READY)
-    // Fetch current order status
+    // 4. Process Sequential Status Transitions (PENDING -> PREPARING -> READY -> COMPLETED)
     const order = await prisma.order.findUnique({
       where: { id },
     });
@@ -70,7 +76,7 @@ export async function PATCH(req, { params }) {
 
     const currentStatus = order.status.toUpperCase();
 
-    // Enforce sequential state transitions
+    // Enforce strict linear progression
     let isValidTransition = false;
     if (currentStatus === "PENDING" && nextStatus === "PREPARING") {
       isValidTransition = true;
@@ -89,7 +95,7 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Update order status
+    // 5. Update database record
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status: nextStatus },
@@ -102,7 +108,7 @@ export async function PATCH(req, { params }) {
       },
     });
 
-    // Broadcast SSE update
+    // 6. Broadcast SSE update
     broadcastSSE("ORDER_UPDATED", updatedOrder);
 
     return NextResponse.json(

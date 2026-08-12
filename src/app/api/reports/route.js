@@ -4,19 +4,33 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
 
+/**
+ * GET /api/reports
+ * Aggregates high-level business reports and dashboard analytics:
+ * 1. Order Status Counts (PENDING, PREPARING, READY)
+ * 2. Total Estimated Revenue
+ * 3. Active Orders listing with item relations
+ * 4. 7-day Historical Order Volume breakdown
+ * 5. Week-over-week order growth percentage
+ * 6. Actionable Low Stock Inventory Alerts
+ * 
+ * Restricted to OWNER, MANAGER, and AUDITOR roles.
+ */
 export async function GET(req) {
   try {
+    // 1. Authenticate user
     const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 2. Validate role authorization
     const allowedRoles = ["OWNER", "MANAGER", "AUDITOR"];
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 1. Stats Cards
+    // 3. Compute KPI Counts
     const newOrdersCount = await prisma.order.count({
       where: { status: "PENDING" },
     });
@@ -37,12 +51,11 @@ export async function GET(req) {
       },
     });
 
-    // Compute dynamic revenue based on all order items
-    // Since there's no price in database, we assume a base item value of $15
+    // Compute dynamic revenue based on all order items (assuming nominal $15/item)
     const orderItems = await prisma.orderItem.findMany();
     const totalRevenue = orderItems.reduce((acc, item) => acc + item.quantity * 15, 0);
 
-    // 2. Active Orders
+    // 4. Fetch Active Orders (Pending, Preparing, Ready)
     const activeOrders = await prisma.order.findMany({
       where: {
         status: {
@@ -59,7 +72,7 @@ export async function GET(req) {
       },
     });
 
-    // 3. Daily Order Volume (past 7 days)
+    // 5. Compute Daily Order Volume over the past 7 days
     const today = new Date();
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dailyVolume = [];
@@ -85,7 +98,7 @@ export async function GET(req) {
       });
     }
 
-    // Weekly summary
+    // 6. Calculate Week-over-Week Growth
     const startOfThisWeek = new Date();
     startOfThisWeek.setDate(today.getDate() - 7);
     const thisWeekCount = await prisma.order.count({
@@ -109,11 +122,10 @@ export async function GET(req) {
     if (lastWeekCount > 0) {
       growth = parseFloat((((thisWeekCount - lastWeekCount) / lastWeekCount) * 100).toFixed(1));
     } else if (thisWeekCount > 0) {
-      growth = 100; // default to 100% if last week had 0 orders
+      growth = 100; // Default to 100% if prior week was zero
     }
 
-    // 4. Inventory Alerts
-    // Find products where stock is below the threshold
+    // 7. Generate Low-Stock Inventory Alerts
     const lowStockProducts = await prisma.product.findMany({
       where: {
         stock: {
@@ -138,7 +150,7 @@ export async function GET(req) {
         product: p.name,
         sku: `SKU-${p.id.slice(0, 4).toUpperCase()}`,
         stock: p.stock,
-        totalStock: 20, // assumption for capacity
+        totalStock: 20, // Estimated storage capacity
         status,
         message,
         tone,

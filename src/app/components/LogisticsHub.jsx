@@ -8,7 +8,15 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 
+/**
+ * LogisticsHub Component
+ * Displays real-time operational metrics for orders across different lifecycle stages:
+ * Pending Orders, Currently Preparing, Ready for Delivery/Pickup, and Completed Today.
+ * 
+ * @param {number} refreshKey - Dependency trigger to force data reload on SSE events
+ */
 export default function LogisticsHub({ refreshKey }) {
+  // State for storing aggregated order metrics
   const [summary, setSummary] = useState({
     pendingOrders: 0,
     preparingOrders: 0,
@@ -18,6 +26,9 @@ export default function LogisticsHub({ refreshKey }) {
 
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Fetches the order count breakdown from /api/orders/summary
+   */
   const fetchSummary = async () => {
     try {
       const response = await fetch("/api/orders/summary", {
@@ -38,10 +49,12 @@ export default function LogisticsHub({ refreshKey }) {
     }
   };
 
+  // Re-fetch counts when refreshKey increments
   useEffect(() => {
     fetchSummary();
   }, [refreshKey]);
 
+  // Display card configuration
   const stats = [
     {
       title: "Pending Orders",
@@ -82,6 +95,7 @@ export default function LogisticsHub({ refreshKey }) {
         </p>
       </div>
 
+      {/* Metric Cards Grid */}
       {loading ? (
         <div className="flex items-center justify-center h-60 text-gray-500">
           Loading order summary...

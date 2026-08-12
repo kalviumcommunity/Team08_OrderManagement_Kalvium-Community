@@ -1,20 +1,26 @@
 "use client";
 
+/**
+ * ProfileCard Component
+ * Displays the restaurant owner profile details including Restaurant Name,
+ * Owner Name, Email, Phone Number, and Business Type badge.
+ * 
+ * @param {object} profile - The user profile object
+ * @param {boolean} loading - Loading indicator flag
+ */
 export default function ProfileCard({ profile, loading = false }) {
   if (loading || !profile) {
     return (
-      <div className="bg-white rounded-xl p-10 text-center">
-        Loading...
+      <div className="bg-white rounded-xl p-10 text-center text-gray-500">
+        Loading profile details...
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-
       {/* Header */}
       <div className="mb-10">
-
         <h2 className="text-2xl font-bold text-gray-800">
           Restaurant Profile
         </h2>
@@ -22,106 +28,73 @@ export default function ProfileCard({ profile, loading = false }) {
         <p className="text-gray-500 mt-2">
           View your registered restaurant information.
         </p>
-
       </div>
 
-      {/* Form */}
-
+      {/* Profile Fields Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
         {/* Restaurant Name */}
-
         <div>
-
           <div className="bg-slate-50 border border-gray-200 rounded-xl p-4">
-
             <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-              
               Restaurant Name
             </p>
 
             <p className="font-semibold text-gray-800">
-              {profile.restaurantName}
+              {profile.restaurantName || "N/A"}
             </p>
-
           </div>
-
         </div>
 
-        {/* Owner */}
-
+        {/* Owner Name */}
         <div>
-
           <div className="bg-slate-50 border border-gray-200 rounded-xl p-4">
-
             <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-             
               Owner Name
             </p>
 
             <p className="font-semibold text-gray-800">
               {profile.name}
             </p>
-
           </div>
-
         </div>
 
-        {/* Email */}
-
+        {/* Email Address */}
         <div>
-
           <div className="bg-slate-50 border border-gray-200 rounded-xl p-4">
-
             <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-              
               Email
             </p>
 
             <p className="font-semibold text-gray-800 break-all">
               {profile.email}
             </p>
-
           </div>
-
         </div>
 
-        {/* Phone */}
-
+        {/* Contact Phone */}
         <div>
-
           <div className="bg-slate-50 border border-gray-200 rounded-xl p-4">
-
             <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-             
               Phone Number
             </p>
 
             <p className="font-semibold text-gray-800">
-              {profile.phone}
+              {profile.phone || "N/A"}
             </p>
-
           </div>
-
         </div>
 
-        {/* Business Type */}
-
+        {/* Business Type Badge */}
         <div className="md:col-span-2 bg-slate-50 border border-gray-200 rounded-xl p-4">
-
           <p className="text-sm text-gray-500 mb-1 flex items-center gap-2">
-          
             Business Type
           </p>
 
           <span className="inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium mt-1">
-            {profile.businessType}
+            {profile.businessType || "Restaurant"}
           </span>
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -1,3 +1,9 @@
+/**
+ * Order Cancellation & Low-Stock Alerts Test Suite
+ * Validates atomic order cancellation, stock restoration, audit log writing,
+ * and low-stock alert triggers.
+ */
+
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 async function runCancellationAlertsTests() {

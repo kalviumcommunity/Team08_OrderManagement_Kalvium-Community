@@ -1,3 +1,6 @@
+// Prisma Schema Configuration
+// Defines database connection, generators, and models for the restaurant order management system.
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -7,76 +10,85 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// User Model - Represents restaurant owners, managers, auditors, and customers
 model User {
   id                   String         @id @default(uuid())
 
-  name                 String
-  restaurantName       String
-  phone                String
-  businessType         String
+  name                 String         // Full name of the user / owner
+  restaurantName       String         // Registered restaurant or organization name
+  phone                String         // Contact phone number
+  businessType         String         // Type of business (e.g. Restaurant, Bakery, Cafe)
 
-  email                String         @unique
-  passwordHash         String
-  role                 String         @default("OWNER")
+  email                String         @unique // Unique login email address
+  passwordHash         String         // Bcrypt hashed password
+  role                 String         @default("OWNER") // Permitted roles: "OWNER", "MANAGER", "AUDITOR", "CUSTOMER"
 
-  resetPasswordToken   String?
-  resetPasswordExpires DateTime?
-  refreshToken         String?
+  resetPasswordToken   String?        // Hashed token for password resets
+  resetPasswordExpires DateTime?      // Expiration timestamp for password reset token
+  refreshToken         String?        // Long-lived JWT refresh token for session rotation
 
   createdAt            DateTime       @default(now())
 
-  orders               Order[]
-  inventoryLogs        InventoryLog[]
+  // Relationships
+  orders               Order[]        // Orders placed by or assigned to this user
+  inventoryLogs        InventoryLog[] // Audit logs of inventory adjustments performed by this user
 }
 
+// Product Model - Represents items in the restaurant inventory catalog
 model Product {
   id                String         @id @default(uuid())
 
-  name              String
-  description       String?
-  sku               String         @unique
-  barcode           String?
-  category          String
-  stock             Int            @default(0)
-  maxStock          Int            @default(100)
-  lowStockThreshold Int            @default(5)
+  name              String         // Product item name (e.g. Chicken Wings, Cheese, Buns)
+  description       String?        // Optional product description
+  sku               String         @unique // Unique Stock Keeping Unit identifier
+  barcode           String?        // Optional barcode scanner string
+  category          String         // Item category (e.g. Vegetables, Meat, Dairy, Bakery)
+  stock             Int            @default(0) // Current on-hand quantity
+  maxStock          Int            @default(100) // Maximum inventory capacity
+  lowStockThreshold Int            @default(5) // Threshold level triggering low-stock alert warnings
 
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
-  orderItems        OrderItem[]
-  inventoryLogs     InventoryLog[]
+  // Relationships
+  orderItems        OrderItem[]    // Order line items referencing this product
+  inventoryLogs     InventoryLog[] // Historical stock modification audit records
 }
 
+// Order Model - Represents customer orders with lifecycle status
 model Order {
   id           String         @id @default(uuid())
-  userId       String
+  userId       String         // Foreign key referencing the creator User
   user         User           @relation(fields: [userId], references: [id])
-  customerName String         // Cache customer name for quick read
-  status       String         @default("PENDING") // Status types: "PENDING", "PREPARING", "READY"
+  customerName String         // Cached customer name for fast read queries
+  status       String         @default("PENDING") // Status workflow: "PENDING" -> "PREPARING" -> "READY" -> "COMPLETED" (or "CANCELLED")
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  items        OrderItem[]
+
+  // Relationships
+  items        OrderItem[]    // Ordered product line items (cascades on delete)
 }
 
+// OrderItem Model - Represents individual line items within an Order
 model OrderItem {
   id        String  @id @default(uuid())
-  orderId   String
+  orderId   String  // Foreign key referencing parent Order
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
+  productId String  // Foreign key referencing ordered Product
   product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
+  quantity  Int     // Quantity of product ordered
 }
 
+// InventoryLog Model - Immutable audit trail of all inventory deductions, additions, and refunds
 model InventoryLog {
   id               String   @id @default(uuid())
-  productId        String
+  productId        String   // Foreign key referencing modified Product
   product          Product  @relation(fields: [productId], references: [id])
-  ownerId          String?
+  ownerId          String?  // Optional foreign key referencing User who performed adjustment
   owner            User?    @relation(fields: [ownerId], references: [id])
-  previousQuantity Int
-  newQuantity      Int
-  changeAmount     Int
-  reason           String
+  previousQuantity Int      // Stock level before change
+  newQuantity      Int      // Stock level after change
+  changeAmount     Int      // Net stock difference (+/- quantity)
+  reason           String   // Reason description (e.g. "Order placed", "Restock", "Order Cancelled")
   timestamp        DateTime @default(now())
 }

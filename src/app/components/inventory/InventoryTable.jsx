@@ -2,6 +2,14 @@
 
 import InventoryRow from "./InventoryRow";
 
+/**
+ * InventoryTable Component
+ * Renders the master product table header and rows for each inventory item.
+ * 
+ * @param {Array} inventory - List of formatted product records
+ * @param {Function} onEdit - Callback when clicking the edit button on a row
+ * @param {Function} onDelete - Callback when clicking the delete button on a row
+ */
 export default function InventoryTable({
   inventory,
   onEdit,
@@ -9,17 +17,12 @@ export default function InventoryTable({
 }) {
   return (
     <div className="bg-white border rounded-2xl shadow-sm overflow-hidden">
-
-      {/* Responsive Table */}
+      {/* Responsive Table Wrapper */}
       <div className="overflow-x-auto">
-
         <table className="min-w-[1100px] w-full">
-
-          {/* Header */}
+          {/* Table Header */}
           <thead className="bg-gray-50">
-
             <tr className="text-left text-xs uppercase text-gray-500">
-
               <th className="px-4 py-4">
                 <input type="checkbox" />
               </th>
@@ -47,14 +50,11 @@ export default function InventoryTable({
               <th className="px-4 py-4 text-center">
                 Actions
               </th>
-
             </tr>
-
           </thead>
 
-          {/* Body */}
+          {/* Table Body */}
           <tbody>
-
             {inventory.map((item) => (
               <InventoryRow
                 key={item.id}
@@ -63,14 +63,9 @@ export default function InventoryTable({
                 onDelete={onDelete}
               />
             ))}
-
           </tbody>
-
         </table>
-
       </div>
-
-
     </div>
   );
 }

@@ -1,3 +1,9 @@
+/**
+ * Real-time SSE & API Integration Test Suite
+ * Validates real-time Server-Sent Events broadcasting, sequential order progression,
+ * stock replenishment transactions, and reports generation.
+ */
+
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 async function runNewApiTests() {

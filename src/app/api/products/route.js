@@ -4,7 +4,10 @@ import { getUserFromRequest } from "@/lib/auth-helper";
 import { updateStock } from "@/lib/services/inventory-service";
 import { broadcastSSE } from "@/lib/sse";
 
-// GET: List all products and their current stock
+/**
+ * GET /api/products
+ * Retrieves paginated list of catalog products with optional search and lowStock filters.
+ */
 export async function GET(req) {
   try {
     const user = getUserFromRequest(req);
@@ -21,6 +24,7 @@ export async function GET(req) {
 
     const skip = (page - 1) * limit;
 
+    // Filter by search terms across name, SKU, and category
     const where = {};
     if (search) {
       where.OR = [
@@ -63,6 +67,11 @@ export async function GET(req) {
   }
 }
 
+/**
+ * POST /api/products
+ * Creates a new product catalog item.
+ * Restricted to OWNER and MANAGER roles.
+ */
 export async function POST(req) {
   try {
     const user = await getUserFromRequest(req);
@@ -75,7 +84,6 @@ export async function POST(req) {
     }
 
     const allowedRoles = ["OWNER", "MANAGER"];
-
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json(
         { error: "Forbidden" },
@@ -103,6 +111,7 @@ export async function POST(req) {
       );
     }
 
+    // Check SKU uniqueness
     const existing = await prisma.product.findUnique({
       where: {
         sku,
@@ -118,6 +127,7 @@ export async function POST(req) {
       );
     }
 
+    // Insert new product
     const product = await prisma.product.create({
       data: {
         name,
@@ -150,7 +160,11 @@ export async function POST(req) {
   }
 }
 
-// PATCH: Direct inventory stock adjustments (restricted to OWNER and MANAGER)
+/**
+ * PATCH /api/products
+ * Adjusts product stock directly and records audit log.
+ * Restricted to OWNER and MANAGER roles. Emits SSE stock update.
+ */
 export async function PATCH(req) {
   try {
     const user = getUserFromRequest(req);
@@ -199,6 +213,11 @@ export async function PATCH(req) {
   }
 }
 
+/**
+ * DELETE /api/products
+ * Deletes a product from the database if it has no associated orders.
+ * Restricted to OWNER and MANAGER roles. Emits SSE product deletion event.
+ */
 export async function DELETE(req) {
   try {
     const user = await getUserFromRequest(req);
@@ -211,7 +230,6 @@ export async function DELETE(req) {
     }
 
     const allowedRoles = ["OWNER", "MANAGER"];
-
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json(
         { error: "Forbidden" },
@@ -239,6 +257,7 @@ export async function DELETE(req) {
       );
     }
 
+    // Prevent deletion if product has historical order references
     const orderItemCount = await prisma.orderItem.count({
       where: {
         productId,
@@ -255,6 +274,7 @@ export async function DELETE(req) {
       );
     }
 
+    // Clean up inventory logs and delete the product
     await prisma.$transaction([
       prisma.inventoryLog.deleteMany({
         where: {

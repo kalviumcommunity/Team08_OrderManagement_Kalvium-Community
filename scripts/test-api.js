@@ -1,3 +1,9 @@
+/**
+ * API Integration Test Suite
+ * Validates NextAuth providers, CSRF tokens, session endpoints, user login/registration,
+ * product management, inventory stock adjustments, and order placement flows.
+ */
+
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 async function runApiTests() {

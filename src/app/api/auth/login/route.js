@@ -4,8 +4,15 @@ import bcrypt from "bcryptjs";
 import { signAccessToken, signRefreshToken } from "@/lib/jwt";
 import { isRateLimited, getClientKey } from "@/lib/rate-limiter";
 
+/**
+ * POST /api/auth/login
+ * Handles user authentication via email & password.
+ * Implements rate limiting, credential verification, JWT token generation,
+ * and sets HttpOnly cookies for session management.
+ */
 export async function POST(req) {
   try {
+    // 1. Rate Limiting Check (Max 5 attempts per minute per IP)
     const ipKey = getClientKey(req, "login");
     if (isRateLimited(ipKey, 5, 60000)) {
       return NextResponse.json(
@@ -14,6 +21,7 @@ export async function POST(req) {
       );
     }
 
+    // 2. Parse and validate request body
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -23,6 +31,7 @@ export async function POST(req) {
       );
     }
 
+    // 3. Find user by email in database
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -34,6 +43,7 @@ export async function POST(req) {
       );
     }
 
+    // 4. Verify password hash using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
@@ -43,7 +53,7 @@ export async function POST(req) {
       );
     }
 
-    // Sign tokens
+    // 5. Generate short-lived Access Token (15m) and long-lived Refresh Token (7d)
     const accessToken = signAccessToken({
       id: user.id,
       email: user.email,
@@ -56,7 +66,7 @@ export async function POST(req) {
       role: user.role,
     });
 
-    // Store refresh token in user profile
+    // 6. Persist refresh token in user database record
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -64,6 +74,7 @@ export async function POST(req) {
       },
     });
 
+    // 7. Construct JSON response payload
     const response = NextResponse.json({
       message: "Login successful",
       user: {
@@ -77,7 +88,7 @@ export async function POST(req) {
 
     const isProd = process.env.NODE_ENV === "production";
 
-    // Set secure HttpOnly cookies
+    // 8. Attach secure, HttpOnly cookies for access and refresh tokens
     response.cookies.set({
       name: "token",
       value: accessToken,

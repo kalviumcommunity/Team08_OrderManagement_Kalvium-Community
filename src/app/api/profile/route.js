@@ -4,8 +4,13 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
 
+/**
+ * GET /api/profile
+ * Retrieves the complete profile record of the currently authenticated user.
+ */
 export async function GET(req) {
   try {
+    // 1. Authenticate user from session token
     const user = getUserFromRequest(req);
 
     if (!user) {
@@ -15,6 +20,7 @@ export async function GET(req) {
       );
     }
 
+    // 2. Query user profile by user ID
     const profile = await prisma.user.findUnique({
       where: {
         id: user.id,

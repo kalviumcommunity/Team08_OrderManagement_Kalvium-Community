@@ -7,6 +7,16 @@ import {
   CircleX,
 } from "lucide-react";
 
+/**
+ * InventoryStats Component
+ * 4-card metric display showing current inventory breakdown:
+ * - Total Products
+ * - In Stock (healthy level)
+ * - Low Stock (approaching threshold)
+ * - Out of Stock (zero quantity)
+ * 
+ * @param {object} stats - Aggregated product stock statistics
+ */
 export default function InventoryStats({ stats }) {
   const cards = [
     {

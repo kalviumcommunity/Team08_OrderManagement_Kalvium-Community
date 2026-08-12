@@ -3,9 +3,16 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { registerSchema } from "@/lib/validation";
 
+/**
+ * POST /api/auth/register
+ * Handles registration for new users/restaurant owners.
+ * Validates the schema, hashes password, prevents duplicate emails, and creates DB record.
+ */
 export async function POST(req) {
   try {
     const body = await req.json();
+
+    // 1. Validate payload against Zod schema
     const validation = registerSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -28,7 +35,7 @@ export async function POST(req) {
       role,
     } = validation.data;
 
-    // Check if user already exists
+    // 2. Check if user with given email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -40,10 +47,13 @@ export async function POST(req) {
       );
     }
 
+    // Default role to OWNER if not specified
     const finalRole = role || "OWNER";
+
+    // 3. Hash password securely with salt rounds = 10
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user in database
+    // 4. Create new user record in SQLite / Postgres via Prisma
     const user = await prisma.user.create({
       data: {
         name,
@@ -56,7 +66,7 @@ export async function POST(req) {
       },
     });
 
-    // Return user without password
+    // 5. Exclude passwordHash before returning created user data
     const { passwordHash, ...userWithoutPassword } = user;
 
     return NextResponse.json(

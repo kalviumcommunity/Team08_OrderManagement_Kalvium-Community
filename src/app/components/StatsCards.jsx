@@ -1,4 +1,16 @@
+/**
+ * StatsCards Component
+ * Renders key business KPI summary cards across the top of the dashboard:
+ * - New Orders
+ * - Orders currently preparing
+ * - Orders ready for pickup
+ * - Estimated total revenue
+ * - Low stock warnings
+ * 
+ * @param {object} stats - Aggregated statistics data object
+ */
 export default function StatsCards({ stats }) {
+  // Extract and format stats with safe defaults
   const newOrders = stats?.newOrdersCount ?? 0;
   const preparing = stats?.preparingCount ?? 0;
   const ready = stats?.readyCount ?? 0;
@@ -7,8 +19,7 @@ export default function StatsCards({ stats }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mt-8 text-gray-900">
-
-      {/* New Orders */}
+      {/* 1. New Orders Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer">
         <p className="text-xs uppercase tracking-wide text-gray-500">
           New Orders
@@ -23,7 +34,7 @@ export default function StatsCards({ stats }) {
         </p>
       </div>
 
-      {/* Preparing */}
+      {/* 2. Preparing Orders Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer">
         <p className="text-xs uppercase tracking-wide text-gray-500">
           Preparing
@@ -38,7 +49,7 @@ export default function StatsCards({ stats }) {
         </p>
       </div>
 
-      {/* Ready */}
+      {/* 3. Ready Orders Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer">
         <p className="text-xs uppercase tracking-wide text-gray-500">
           Ready
@@ -53,7 +64,7 @@ export default function StatsCards({ stats }) {
         </p>
       </div>
 
-      {/* Revenue */}
+      {/* 4. Estimated Revenue Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer">
         <p className="text-xs uppercase tracking-wide text-gray-500">
           Revenue
@@ -68,7 +79,7 @@ export default function StatsCards({ stats }) {
         </p>
       </div>
 
-      {/* Low Stock */}
+      {/* 5. Low Stock Alert Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition duration-300 cursor-pointer">
         <p className="text-xs uppercase tracking-wide text-gray-500">
           Low Stock
@@ -82,7 +93,6 @@ export default function StatsCards({ stats }) {
           Restock needed
         </p>
       </div>
-
     </div>
   );
 }

@@ -3,6 +3,12 @@ import prisma from "@/lib/prisma";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 
+/**
+ * POST /api/auth/forgot-password
+ * Handles password reset requests.
+ * Generates a secure random reset token, stores its hash and expiry in the database,
+ * and sends an email containing the reset link via nodemailer.
+ */
 export async function POST(req) {
   try {
     const { email } = await req.json();
@@ -14,24 +20,25 @@ export async function POST(req) {
       );
     }
 
+    // 1. Look up user by email
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
+    // 2. Prevent user enumeration: always return 200 even if user doesn't exist
     if (!user) {
-      // Return 200/success anyway to prevent user enumeration security issues
       return NextResponse.json(
         { message: "If that email exists, we have sent a password reset token." },
         { status: 200 }
       );
     }
 
-    // Generate a secure reset token
+    // 3. Generate a secure random token and compute SHA-256 hash for storage
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-    const expires = new Date(Date.now() + 3600000); // 1 hour expiration
+    const expires = new Date(Date.now() + 3600000); // 1 hour expiry (in ms)
 
-    // Update user in DB
+    // 4. Update user record with hashed reset token and expiration time
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -40,8 +47,10 @@ export async function POST(req) {
       },
     });
 
+    // 5. Construct password reset URL with unhashed token
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
 
+    // 6. Configure email transporter (SMTP Gmail)
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
@@ -52,6 +61,7 @@ export async function POST(req) {
       },
     });
 
+    // 7. Dispatch the reset email with HTML template
     await transporter.sendMail({
       from: `"Licious" <${process.env.EMAIL_USER}>`,
       to: email,

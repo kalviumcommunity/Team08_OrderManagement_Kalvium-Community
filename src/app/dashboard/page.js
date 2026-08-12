@@ -9,7 +9,17 @@ import OrderVolume from "../components/OrderVolume";
 import InventoryAlerts from "../components/InventoryAlerts";
 import LogisticsHub from "../components/LogisticsHub";
 
+/**
+ * Main Dashboard Page Component (Route: `/dashboard`)
+ * Provides real-time overview of business metrics:
+ * - KPI summary cards (pending orders, revenue, inventory alerts)
+ * - Active orders table
+ * - 7-day order volume chart
+ * - Low stock warnings & restock action
+ * - Logistics / delivery status hub
+ */
 export default function Dashboard() {
+  // Component states
   const [data, setData] = useState(null);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
@@ -17,6 +27,9 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  /**
+   * Fetches overall business report statistics from /api/reports
+   */
   const fetchReports = async () => {
     try {
       const res = await fetch("/api/reports");
@@ -36,6 +49,9 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Fetches active orders list
+   */
   async function fetchOrders() {
     try {
       const res = await fetch("/api/orders", {
@@ -48,10 +64,13 @@ export default function Dashboard() {
         setOrders(responseData.orders || []);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load orders:", err);
     }
   }
 
+  /**
+   * Fetches product list for stock alerts
+   */
   async function fetchProducts() {
     try {
       const res = await fetch("/api/products", {
@@ -64,10 +83,11 @@ export default function Dashboard() {
         setProducts(responseData.products || []);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load products:", err);
     }
   }
 
+  // Load all initial dashboard data concurrently on page mount
   useEffect(() => {
     const loadDashboard = async () => {
       await Promise.all([fetchReports(), fetchOrders(), fetchProducts()]);
@@ -77,6 +97,7 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
+  // Subscribe to real-time Server-Sent Events to keep dashboard data synchronized
   useEffect(() => {
     const eventSource = new EventSource("/api/events");
 
@@ -111,20 +132,17 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-
       <div className="flex min-h-screen">
-
-        {/* Sidebar */}
+        {/* Navigation Sidebar */}
         <Sidebar />
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <main className="flex-1 overflow-x-hidden">
-
           <div className="p-4 sm:p-6 lg:p-8">
-
-            {/* Navbar */}
+            {/* Top Navigation */}
             <Navbar />
 
+            {/* Content Loading & Error States */}
             {loading ? (
               <div className="flex justify-center items-center h-[50vh] mt-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
@@ -135,21 +153,17 @@ export default function Dashboard() {
               </div>
             ) : (
               <>
-                {/* Stats */}
+                {/* Metric Summary Cards */}
                 <StatsCards stats={data?.stats} />
 
-                {/* Orders + Chart */}
+                {/* Active Orders & Volume Chart Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-
                   <ActiveOrders orders={orders.slice(0, 5)} />
-
                   <OrderVolume orders={orders} />
-
                 </div>
 
-                {/* Inventory + Logistics */}
+                {/* Inventory Alerts & Logistics Hub Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-
                   <InventoryAlerts
                     products={products}
                     onRestockSuccess={async () => {
@@ -159,17 +173,12 @@ export default function Dashboard() {
                   />
 
                   <LogisticsHub refreshKey={refreshKey} />
-
                 </div>
               </>
             )}
-
           </div>
-
         </main>
-
       </div>
-
     </div>
   );
 }

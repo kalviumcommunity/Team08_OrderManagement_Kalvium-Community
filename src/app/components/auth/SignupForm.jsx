@@ -5,10 +5,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "./PasswordInput";
 
+/**
+ * SignupForm Component
+ * Form for registering new restaurant accounts.
+ * Collects owner information, restaurant branding, business type, and credentials.
+ * Automatically performs login upon successful account creation.
+ */
 export default function SignupForm() {
+  const router = useRouter();
 
-const router = useRouter();
-
+  // Controlled form state
   const [form, setForm] = useState({
     restaurant: "",
     owner: "",
@@ -20,6 +26,7 @@ const router = useRouter();
     agree: false,
   });
 
+  // Client-side form completeness and password match check
   const isFormValid =
     form.restaurant.trim() !== "" &&
     form.owner.trim() !== "" &&
@@ -31,6 +38,7 @@ const router = useRouter();
     form.password === form.confirmPassword &&
     form.agree;
 
+  // Unified input change handler
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -40,68 +48,71 @@ const router = useRouter();
     }));
   };
 
+  /**
+   * Submits user registration payload and auto-logs in
+   */
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!isFormValid) return;
+    if (!isFormValid) return;
 
-  try {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: form.owner,
-        restaurantName: form.restaurant,
-        phone: form.phone,
-        businessType: form.business,
-        email: form.email,
-        password: form.password,
-        role: "OWNER",
-      }),
-    });
+    try {
+      // 1. Send registration request
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.owner,
+          restaurantName: form.restaurant,
+          phone: form.phone,
+          businessType: form.business,
+          email: form.email,
+          password: form.password,
+          role: "OWNER",
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      alert(data.error);
-      return;
+      if (!response.ok) {
+        alert(data.error);
+        return;
+      }
+
+      // 2. Automatically log in upon successful registration
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        alert(loginData.error);
+        return;
+      }
+
+      // Save user session in localStorage and redirect to dashboard
+      localStorage.setItem("user", JSON.stringify(loginData.user));
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("Something went wrong. Please try again.");
     }
-
-    // Automatically log in after successful registration
-    const loginResponse = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: form.email,
-        password: form.password,
-      }),
-    });
-
-    const loginData = await loginResponse.json();
-
-    if (!loginResponse.ok) {
-      alert(loginData.error);
-      return;
-    }
-
-    localStorage.setItem("user", JSON.stringify(loginData.user));
-
-    router.push("/dashboard");
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong.");
-  }
-};
+  };
 
   return (
     <div className="w-full">
-
+      {/* Title & Description */}
       <div className="mb-8">
-
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
           Create Account
         </h1>
@@ -109,20 +120,16 @@ const router = useRouter();
         <p className="mt-2 text-gray-500">
           Register your restaurant to start managing your business.
         </p>
-
       </div>
 
+      {/* Registration Form */}
       <form
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-
-        {/* Restaurant + Owner */}
-
+        {/* Restaurant Name & Owner Name Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
           <div>
-
             <label className="block mb-2 font-medium">
               Restaurant Name
             </label>
@@ -136,11 +143,9 @@ const router = useRouter();
               placeholder="Licious Restaurant"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-
           </div>
 
           <div>
-
             <label className="block mb-2 font-medium">
               Owner Name
             </label>
@@ -154,17 +159,12 @@ const router = useRouter();
               placeholder="John Doe"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-
           </div>
-
         </div>
 
-        {/* Email + Phone */}
-
+        {/* Work Email & Phone Number Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
           <div>
-
             <label className="block mb-2 font-medium">
               Email
             </label>
@@ -178,11 +178,9 @@ const router = useRouter();
               placeholder="restaurant@email.com"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-
           </div>
 
           <div>
-
             <label className="block mb-2 font-medium">
               Phone Number
             </label>
@@ -196,15 +194,11 @@ const router = useRouter();
               placeholder="+91 9876543210"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-
           </div>
-
         </div>
 
-        {/* Business Type */}
-
+        {/* Business Type Select */}
         <div>
-
           <label className="block mb-2 font-medium">
             Business Type
           </label>
@@ -223,13 +217,10 @@ const router = useRouter();
             <option>Fast Food</option>
             <option>Cloud Kitchen</option>
           </select>
-
         </div>
 
-        {/* Passwords */}
-
+        {/* Passwords Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
           <PasswordInput
             label="Password"
             name="password"
@@ -247,13 +238,10 @@ const router = useRouter();
             onChange={handleChange}
             placeholder="Confirm password"
           />
-
         </div>
 
-        {/* Checkbox */}
-
+        {/* Terms and Conditions Checkbox */}
         <label className="flex items-start gap-3 text-sm text-gray-600">
-
           <input
             type="checkbox"
             name="agree"
@@ -271,11 +259,9 @@ const router = useRouter();
               Terms & Conditions
             </Link>
           </span>
-
         </label>
 
-        {/* Button */}
-
+        {/* Submit Action */}
         <button
           type="submit"
           disabled={!isFormValid}
@@ -287,22 +273,18 @@ const router = useRouter();
         >
           Create Account
         </button>
-
       </form>
 
+      {/* Link to Login */}
       <div className="mt-8 text-center text-gray-600">
-
         Already have an account?
-
         <Link
           href="/"
           className="ml-2 font-semibold text-indigo-600 hover:underline"
         >
           Sign In
         </Link>
-
       </div>
-
     </div>
   );
 }

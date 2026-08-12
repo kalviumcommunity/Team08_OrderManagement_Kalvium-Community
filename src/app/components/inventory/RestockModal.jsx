@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 
+/**
+ * RestockModal Component
+ * Dialog modal allowing users to restock a depleted item up to its maximum capacity.
+ * 
+ * @param {object} item - The product being restocked
+ * @param {Function} onClose - Callback to dismiss the modal
+ * @param {Function} onSuccess - Callback when restock request succeeds
+ */
 export default function RestockModal({
   item,
   onClose,
@@ -12,6 +20,9 @@ export default function RestockModal({
 
   if (!item) return null;
 
+  /**
+   * Submit restock transaction to POST /api/products/restock
+   */
   const handleRestock = async (e) => {
     e.preventDefault();
 
@@ -62,24 +73,29 @@ export default function RestockModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+        {/* Title */}
         <h2 className="text-2xl font-bold mb-6">Restock Item</h2>
 
         <div className="space-y-4">
+          {/* Product Name */}
           <div>
             <p className="text-gray-500 text-sm">Product</p>
             <p className="font-semibold">{item.name}</p>
           </div>
 
+          {/* Current Stock */}
           <div>
             <p className="text-gray-500 text-sm">Current Stock</p>
             <p>{item.stock}</p>
           </div>
 
+          {/* Maximum Stock Capacity */}
           <div>
             <p className="text-gray-500 text-sm">Maximum Stock</p>
             <p>{item.maxStock}</p>
           </div>
 
+          {/* Restock Form */}
           <form onSubmit={handleRestock}>
             <label className="block mb-2 font-medium">Quantity Received</label>
             <input
@@ -92,7 +108,11 @@ export default function RestockModal({
             />
 
             <div className="flex justify-end gap-3 mt-8">
-              <button onClick={onClose} className="px-5 py-2 rounded-lg border">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 rounded-lg border hover:bg-gray-100"
+              >
                 Cancel
               </button>
 

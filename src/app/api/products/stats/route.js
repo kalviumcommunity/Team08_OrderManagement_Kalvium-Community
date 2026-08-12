@@ -4,8 +4,17 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
 
+/**
+ * GET /api/products/stats
+ * Aggregates statistics regarding inventory stock levels:
+ * - totalProducts: Total number of distinct items
+ * - inStock: Items above the low stock threshold
+ * - lowStock: Items at or below the low stock threshold
+ * - outOfStock: Items with zero quantity remaining
+ */
 export async function GET(req) {
   try {
+    // 1. Authenticate user
     const user = await getUserFromRequest(req);
 
     if (!user) {
@@ -15,6 +24,7 @@ export async function GET(req) {
       );
     }
 
+    // 2. Fetch product count and stock levels
     const totalProducts = await prisma.product.count();
 
     const products = await prisma.product.findMany({
@@ -28,6 +38,7 @@ export async function GET(req) {
     let lowStock = 0;
     let outOfStock = 0;
 
+    // 3. Classify each product based on stock thresholds
     products.forEach((product) => {
       if (product.stock === 0) {
         outOfStock++;

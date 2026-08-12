@@ -1,27 +1,37 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { LockKeyhole, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
+/**
+ * Inner Component for Password Reset Form
+ * Reads query parameter `token` from URL and submits new password.
+ */
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Extract reset token from URL query string (?token=...)
   const token = searchParams.get("token");
 
+  // Form states
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Handle form submission to validate and persist new password
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 1. Client-side validations
     if (!token) {
-      alert("Invalid reset link");
+      alert("Invalid or missing reset link token");
       return;
     }
 
@@ -38,6 +48,7 @@ function ResetPasswordContent() {
     try {
       setLoading(true);
 
+      // 2. Call API route to complete password reset
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
@@ -58,6 +69,7 @@ function ResetPasswordContent() {
 
       alert("Password reset successfully! Please log in with your new password.");
 
+      // 3. Redirect back to login screen
       router.push("/");
     } catch (error) {
       console.error("Reset password error:", error);
@@ -69,6 +81,7 @@ function ResetPasswordContent() {
 
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+      {/* Return to Login Navigation */}
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition mb-8"
@@ -77,12 +90,14 @@ function ResetPasswordContent() {
         Back to Login
       </Link>
 
+      {/* Lock Icon */}
       <div className="flex justify-center mb-6">
         <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center">
           <LockKeyhole size={30} className="text-indigo-600" />
         </div>
       </div>
 
+      {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900">
           Reset Password
@@ -93,7 +108,9 @@ function ResetPasswordContent() {
         </p>
       </div>
 
+      {/* Password Reset Form */}
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        {/* New Password Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             New Password
@@ -112,13 +129,14 @@ function ResetPasswordContent() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </div>
 
+        {/* Confirm Password Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Confirm New Password
@@ -139,7 +157,7 @@ function ResetPasswordContent() {
               onClick={() =>
                 setShowConfirmPassword(!showConfirmPassword)
               }
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
               {showConfirmPassword ? (
                 <EyeOff size={20} />
@@ -150,6 +168,7 @@ function ResetPasswordContent() {
           </div>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
@@ -162,6 +181,10 @@ function ResetPasswordContent() {
   );
 }
 
+/**
+ * Reset Password Page Component
+ * Wraps ResetPasswordContent with Suspense boundary required for `useSearchParams` in Next.js.
+ */
 export default function ResetPasswordPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100">

@@ -3,6 +3,19 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+/**
+ * Reusable PasswordInput Component
+ * Includes toggle button for showing/hiding password plaintext,
+ * error state styling, and accessibility labels.
+ * 
+ * @param {string} label - Input label text
+ * @param {string} name - HTML input name and id
+ * @param {string} value - Current input value
+ * @param {Function} onChange - Event handler callback
+ * @param {string} placeholder - Placeholder text
+ * @param {string} error - Optional error message text
+ * @param {boolean} disabled - Whether the input is disabled
+ */
 export default function PasswordInput({
   label,
   name,
@@ -12,11 +25,12 @@ export default function PasswordInput({
   error = "",
   disabled = false,
 }) {
+  // State for toggling password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="w-full">
-
+      {/* Label */}
       {label && (
         <label
           htmlFor={name}
@@ -26,8 +40,8 @@ export default function PasswordInput({
         </label>
       )}
 
+      {/* Input container with absolute toggle icon button */}
       <div className="relative">
-
         <input
           id={name}
           type={showPassword ? "text" : "password"}
@@ -62,6 +76,7 @@ export default function PasswordInput({
           `}
         />
 
+        {/* Visibility Toggle Button */}
         <button
           type="button"
           aria-label={showPassword ? "Hide password" : "Show password"}
@@ -74,15 +89,14 @@ export default function PasswordInput({
             <Eye size={20} />
           )}
         </button>
-
       </div>
 
+      {/* Error Message */}
       {error && (
         <p className="mt-2 text-sm text-red-600">
           {error}
         </p>
       )}
-
     </div>
   );
 }

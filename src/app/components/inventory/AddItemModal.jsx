@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 
+/**
+ * AddItemModal Component
+ * Dialog modal for registering a new product in inventory.
+ * Collects product name, SKU, starting stock, max stock capacity, and category.
+ * 
+ * @param {Function} onClose - Callback to close modal
+ * @param {Function} onSuccess - Callback invoked when item is successfully created
+ */
 export default function AddItemModal({
   onClose,
   onSuccess,
 }) {
+  // Form input states
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [stock, setStock] = useState(100);
@@ -13,6 +22,9 @@ export default function AddItemModal({
   const [category, setCategory] = useState("Vegetables");
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Submit new product creation to POST /api/products
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -60,7 +72,7 @@ export default function AddItemModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl w-full max-w-2xl p-8 shadow-2xl">
-        {/* Header */}
+        {/* Modal Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
             Add New Item
@@ -74,12 +86,12 @@ export default function AddItemModal({
           </button>
         </div>
 
-        {/* Form */}
+        {/* Product Creation Form */}
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-2 gap-6"
         >
-          {/* Product */}
+          {/* Product Name */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
               Product
@@ -93,7 +105,7 @@ export default function AddItemModal({
             />
           </div>
 
-          {/* SKU */}
+          {/* SKU / Barcode */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
               SKU / Barcode
@@ -107,7 +119,7 @@ export default function AddItemModal({
             />
           </div>
 
-          {/* Stock */}
+          {/* Initial Stock Slider */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
               Stock Level: <span className="font-bold">{stock}</span>
@@ -123,6 +135,7 @@ export default function AddItemModal({
             />
           </div>
 
+          {/* Maximum Stock Capacity */}
           <div>
             <label className="block mb-2 font-medium text-gray-700">
               Maximum Stock
@@ -144,7 +157,7 @@ export default function AddItemModal({
             />
           </div>
 
-          {/* Category */}
+          {/* Product Category Dropdown */}
           <div className="col-span-2">
             <label className="block mb-2 font-medium text-gray-700">
               Category
@@ -163,7 +176,7 @@ export default function AddItemModal({
             </select>
           </div>
 
-          {/* Buttons */}
+          {/* Action Buttons */}
           <div className="col-span-2 flex justify-end gap-4 mt-4">
             <button
               type="button"

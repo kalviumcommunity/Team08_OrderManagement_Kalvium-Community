@@ -5,8 +5,15 @@ import prisma from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth-helper";
 import { broadcastSSE } from "@/lib/sse";
 
+/**
+ * POST /api/products/restock
+ * Increments product stock, validates against max storage capacity (maxStock),
+ * creates an inventory log, and broadcasts SSE updates.
+ * Restricted to OWNER and MANAGER roles.
+ */
 export async function POST(req) {
   try {
+    // 1. Authenticate user
     const user = await getUserFromRequest(req);
 
     if (!user) {
@@ -16,8 +23,8 @@ export async function POST(req) {
       );
     }
 
+    // 2. Validate user role
     const allowedRoles = ["OWNER", "MANAGER"];
-
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json(
         { error: "Forbidden" },
@@ -25,6 +32,7 @@ export async function POST(req) {
       );
     }
 
+    // 3. Parse input body
     const { productId, quantity } = await req.json();
 
     if (!productId || typeof quantity !== "number" || quantity <= 0) {
@@ -36,6 +44,7 @@ export async function POST(req) {
       );
     }
 
+    // 4. Retrieve existing product
     const product = await prisma.product.findUnique({
       where: { id: productId },
     });
@@ -47,6 +56,7 @@ export async function POST(req) {
       );
     }
 
+    // 5. Ensure restocking does not exceed maximum stock capacity
     const availableSpace = product.maxStock - product.stock;
 
     if (quantity > availableSpace) {
@@ -58,6 +68,7 @@ export async function POST(req) {
       );
     }
 
+    // 6. Execute stock increment and log creation in transaction
     const result = await prisma.$transaction(async (tx) => {
       const updatedProduct = await tx.product.update({
         where: { id: productId },
@@ -85,6 +96,7 @@ export async function POST(req) {
       };
     });
 
+    // 7. Broadcast real-time stock update
     broadcastSSE("STOCK_UPDATED", {
       productId,
       stock: result.product.stock,

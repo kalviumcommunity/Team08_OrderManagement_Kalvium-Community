@@ -1,42 +1,36 @@
+/**
+ * ActiveOrders Component
+ * Displays a table of the most recent active restaurant orders.
+ * Shows order ID, customer name, line item summaries, status badge, and total calculated price.
+ * 
+ * @param {Array} orders - List of active orders to render
+ */
 export default function ActiveOrders({ orders = [] }) {
   return (
     <div className="col-span-1 lg:col-span-2 bg-white border rounded-xl shadow-sm p-5 text-gray-900">
-
-      {/* Header */}
+      {/* Component Title */}
       <div className="flex items-center justify-between mb-6">
-
         <h2 className="text-xl font-semibold text-gray-800">
           Active Orders
         </h2>
-
       </div>
 
-      {/* Responsive Table */}
+      {/* Responsive Orders Table */}
       <div className="overflow-x-auto">
-
         <table className="min-w-[700px] w-full">
-
           <thead>
-
             <tr className="border-b text-left text-xs uppercase tracking-wide text-gray-500">
-
               <th className="py-3">Order ID</th>
-
               <th>Customer</th>
-
               <th>Items</th>
-
               <th>Status</th>
-
               <th className="text-right">Amount</th>
-
             </tr>
-
           </thead>
 
           <tbody>
-
             {orders.length === 0 ? (
+              // Empty State
               <tr>
                 <td colSpan="5" className="py-6 text-center text-gray-500">
                   No active orders at the moment.
@@ -44,12 +38,13 @@ export default function ActiveOrders({ orders = [] }) {
               </tr>
             ) : (
               orders.map((order) => {
+                // Calculate order amount assuming $15 per unit item
                 const orderAmount = order.items.reduce((sum, item) => sum + item.quantity * 15, 0);
                 const itemsList = order.items
                   .map((item) => `${item.product?.name || "Product"} ×${item.quantity}`)
                   .join(", ");
                 
-                // Color mapping for badge
+                // Determine status badge color scheme
                 let badgeClass = "bg-blue-100 text-blue-700";
                 if (order.status === "PREPARING") {
                   badgeClass = "bg-yellow-100 text-yellow-700";
@@ -59,7 +54,6 @@ export default function ActiveOrders({ orders = [] }) {
 
                 return (
                   <tr key={order.id} className="border-b hover:bg-gray-50 transition">
-
                     <td className="py-4 font-medium text-xs text-gray-600">
                       #{order.id.slice(0, 8)}...
                     </td>
@@ -79,18 +73,13 @@ export default function ActiveOrders({ orders = [] }) {
                     <td className="text-right font-medium">
                       ${orderAmount.toFixed(2)}
                     </td>
-
                   </tr>
                 );
               })
             )}
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }

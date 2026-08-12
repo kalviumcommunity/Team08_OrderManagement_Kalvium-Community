@@ -1,10 +1,14 @@
 import Image from "next/image";
 
+/**
+ * AuthHero Component
+ * Displays a branded visual banner on large screens with background image, dark tint overlay,
+ * and high-level marketing copy for the restaurant management platform.
+ */
 export default function AuthHero() {
   return (
     <div className="hidden lg:flex relative w-full h-full items-center justify-center overflow-hidden">
-
-      {/* Background Image */}
+      {/* Background Hero Image */}
       <Image
         src="/delivery.png"
         alt="Restaurant Background"
@@ -13,12 +17,11 @@ export default function AuthHero() {
         priority
       />
 
-      {/* Dark Overlay */}
+      {/* Dark Dimmer Overlay for text contrast */}
       <div className="absolute inset-0 bg-black/50"></div>
 
-      {/* Glass Card Content */}
+      {/* Overlay Typography & Value Proposition */}
       <div className="relative z-10 px-8 xl:px-12 text-white text-center">
-
         <h1 className="text-3xl xl:text-4xl font-bold">
           Licious
         </h1>
@@ -39,9 +42,7 @@ export default function AuthHero() {
             one unified platform.
           </p>
         </div>
-
       </div>
-
     </div>
   );
 }

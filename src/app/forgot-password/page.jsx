@@ -4,12 +4,20 @@ import Link from "next/link";
 import { useState } from "react";
 import { Mail, ArrowLeft } from "lucide-react";
 
+/**
+ * Forgot Password Page Component (Route: `/forgot-password`)
+ * Allows users to submit their registered email address to receive a secure password reset link.
+ */
 export default function ForgotPasswordPage() {
+  // Component state for email input, feedback messages, error text, and loading spinner
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Handle form submission to trigger reset password email API
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -49,6 +57,7 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+        {/* Back to Login Link */}
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition mb-8"
@@ -57,12 +66,14 @@ export default function ForgotPasswordPage() {
           Back to Login
         </Link>
 
+        {/* Header Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center">
             <Mail size={30} className="text-indigo-600" />
           </div>
         </div>
 
+        {/* Page Title & Instructions */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">
             Forgot Password?
@@ -73,6 +84,7 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
+        {/* Reset Request Form */}
         <form onSubmit={handleSubmit} className="mt-8">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Email Address
@@ -87,18 +99,21 @@ export default function ForgotPasswordPage() {
             className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
 
+          {/* Success Message Banner */}
           {message && (
             <div className="mt-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
               {message}
             </div>
           )}
 
+          {/* Error Message Banner */}
           {error && (
             <div className="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

@@ -12,16 +12,32 @@ import BottomStatusBar from "../components/inventory/BottomStatusBar";
 import AddItemModal from "@/app/components/inventory/AddItemModal";
 import EditItemModal from "@/app/components/inventory/EditItemModal";
 
+/**
+ * Inventory Management Page Component (Route: `/inventory`)
+ * Manages restaurant product catalog and stock levels:
+ * - Real-time stock counts (in-stock, low-stock, out-of-stock)
+ * - Searchable and paginated inventory table
+ * - Add product modal
+ * - Edit stock modal
+ * - Delete product confirmation
+ * - Real-time SSE synchronization
+ */
 export default function InventoryPage() {
+  // Modal visibility states
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  // Data and filter states
   const [inventory, setInventory] = useState([]);
   const [stats, setStats] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
+  /**
+   * Fetches aggregate inventory statistics (total, low stock, out of stock)
+   */
   const fetchInventoryStats = useCallback(async () => {
     try {
       const response = await fetch("/api/products/stats", {
@@ -41,6 +57,9 @@ export default function InventoryPage() {
     }
   }, []);
 
+  /**
+   * Fetches paginated products according to current search keyword and page number
+   */
   const fetchProducts = useCallback(async (
     searchValue = search,
     currentPage = page
@@ -66,6 +85,7 @@ export default function InventoryPage() {
         return;
       }
 
+      // Map response to consistent inventory item schema
       const formattedProducts = data.products.map((product) => {
         return {
           id: product.id,
@@ -87,6 +107,9 @@ export default function InventoryPage() {
     }
   }, [page, search]);
 
+  /**
+   * Refreshes both products table and inventory metrics
+   */
   const refreshInventoryData = useCallback(async () => {
     await Promise.all([
       fetchProducts(search),
@@ -94,10 +117,12 @@ export default function InventoryPage() {
     ]);
   }, [fetchProducts, fetchInventoryStats, search]);
 
+  // Initial load on mount
   useEffect(() => {
     refreshInventoryData();
   }, [refreshInventoryData]);
 
+  // Debounced search query trigger
   useEffect(() => {
     const timeout = setTimeout(() => {
       setPage(1);
@@ -107,10 +132,12 @@ export default function InventoryPage() {
     return () => clearTimeout(timeout);
   }, [fetchProducts, search]);
 
+  // Re-fetch products when page changes
   useEffect(() => {
     fetchProducts(search, page);
   }, [fetchProducts, page, search]);
 
+  // Listen for real-time stock updates from SSE stream
   useEffect(() => {
     const events = new EventSource("/api/events");
 
@@ -127,11 +154,17 @@ export default function InventoryPage() {
     };
   }, [refreshInventoryData]);
 
+  /**
+   * Opens the Edit Item modal for a specific inventory row
+   */
   const handleEdit = (item) => {
     setSelectedItem(item);
     setShowEditModal(true);
   };
 
+  /**
+   * Deletes a product from the inventory after confirmation
+   */
   const handleDelete = async (item) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${item.name}"?`
@@ -158,6 +191,7 @@ export default function InventoryPage() {
         return;
       }
 
+      // If deleting the last item on the page, go to previous page
       const isLastItemOnPage = inventory.length === 1;
 
       if (isLastItemOnPage && page > 1) {
@@ -171,6 +205,9 @@ export default function InventoryPage() {
     }
   };
 
+  /**
+   * Handles saving updated stock quantity from the Edit modal
+   */
   const handleSave = async (updatedItem) => {
     try {
       const originalItem = inventory.find(
@@ -213,37 +250,30 @@ export default function InventoryPage() {
 
   return (
     <div className="mt-6 bg-white rounded-2xl border shadow-sm overflow-hidden">
-
-
       <div className="flex min-h-screen">
-
-        {/* Sidebar */}
+        {/* Navigation Sidebar */}
         <Sidebar />
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <main className="flex-1 overflow-x-hidden">
-
           <div className="p-4 sm:p-6 lg:p-8">
-
-            {/* Navbar */}
+            {/* Search Navbar */}
             <Navbar
               search={search}
               setSearch={setSearch}
             />
 
-            {/* Header */}
+            {/* Header & Add Item Action */}
             <div className="mt-6">
-              <InventoryHeader onAddItem={()=>setShowAddModal(true)}/>
+              <InventoryHeader onAddItem={() => setShowAddModal(true)} />
             </div>
 
-            {/* Statistics */}
+            {/* Metric Statistics Cards */}
             <div className="mt-6">
               <InventoryStats stats={stats} />
             </div>
 
-            
-
-            {/* Inventory Table */}
+            {/* Inventory Items Table */}
             <div className="mt-6">
               <InventoryTable
                 inventory={inventory}
@@ -252,7 +282,7 @@ export default function InventoryPage() {
               />
             </div>
 
-            {/* Pagination */}
+            {/* Pagination Controls */}
             <div className="mt-6">
               <Pagination
                 pagination={pagination}
@@ -260,6 +290,7 @@ export default function InventoryPage() {
               />
             </div>
 
+            {/* Add Product Modal */}
             {showAddModal && (
               <AddItemModal
                 onClose={() => setShowAddModal(false)}
@@ -271,6 +302,7 @@ export default function InventoryPage() {
               />
             )}
 
+            {/* Edit Stock Modal */}
             {showEditModal && (
               <EditItemModal
                 item={selectedItem}
@@ -281,16 +313,12 @@ export default function InventoryPage() {
                 onSave={handleSave}
               />
             )}
-
           </div>
-
         </main>
-
       </div>
 
-      {/* Bottom Status */}
+      {/* System Status Indicator Bar */}
       <BottomStatusBar />
-
     </div>
   );
 }

@@ -5,20 +5,26 @@ import { broadcastSSE } from "@/lib/sse";
 import { orderSchema } from "@/lib/validation";
 import { isRateLimited, getClientKey } from "@/lib/rate-limiter";
 
-// GET: Retrieve all active orders (sorted by creation time)
+/**
+ * GET /api/orders
+ * Retrieves paginated list of orders with optional status and customer name filters.
+ * Restricted to OWNER, MANAGER, and AUDITOR roles.
+ */
 export async function GET(req) {
   try {
+    // 1. Authenticate user
     const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only OWNER, MANAGER, or AUDITOR roles can list all orders
+    // 2. Validate user role
     const allowedRoles = ["OWNER", "MANAGER", "AUDITOR"];
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // 3. Extract query parameters
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
@@ -27,6 +33,7 @@ export async function GET(req) {
 
     const skip = (page - 1) * limit;
 
+    // 4. Construct filter conditions
     const where = {};
     if (status) {
       where.status = status.toUpperCase();
@@ -37,6 +44,7 @@ export async function GET(req) {
       };
     }
 
+    // 5. Query count and paginated records
     const totalCount = await prisma.order.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -69,9 +77,18 @@ export async function GET(req) {
   }
 }
 
-// POST: Place a new order (with transaction-based stock decrement)
+/**
+ * POST /api/orders
+ * Creates a new order atomically within a database transaction:
+ * - Validates stock availability for each line item
+ * - Decrements stock quantities
+ * - Creates inventory deduction logs
+ * - Creates the Order and OrderItem records
+ * - Dispatches real-time SSE notifications (ORDER_CREATED, LOW_STOCK_ALERT)
+ */
 export async function POST(req) {
   try {
+    // 1. Rate limiting check (10 requests/min)
     const ipKey = getClientKey(req, "order");
     if (isRateLimited(ipKey, 10, 60000)) {
       return NextResponse.json(
@@ -80,11 +97,13 @@ export async function POST(req) {
       );
     }
 
+    // 2. Authentication check
     const user = await getUserFromRequest(req);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 3. Parse and validate request body schema
     const body = await req.json();
     const validation = orderSchema.safeParse(body);
     if (!validation.success) {
@@ -95,12 +114,10 @@ export async function POST(req) {
     }
 
     const { items, customerName } = validation.data;
-
     const finalCustomerName = customerName || user.name || "Walk-in Customer";
-
     const lowStockAlerts = [];
 
-    // Run transaction
+    // 4. Execute atomic database transaction
     const result = await prisma.$transaction(async (tx) => {
       const orderItemsToCreate = [];
 
@@ -111,7 +128,7 @@ export async function POST(req) {
           throw new Error("Invalid product ID or quantity");
         }
 
-        // Fetch product and lock the row (or check stock)
+        // Fetch product and verify available stock
         const product = await tx.product.findUnique({
           where: { id: productId },
         });
@@ -124,12 +141,13 @@ export async function POST(req) {
           throw new Error(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
         }
 
-        // Decrement product stock
+        // Atomically decrement stock
         const updatedProduct = await tx.product.update({
           where: { id: productId },
           data: { stock: { decrement: quantity } },
         });
 
+        // Trigger low stock alert if threshold reached
         if (updatedProduct.stock < updatedProduct.lowStockThreshold) {
           lowStockAlerts.push({
             productId: updatedProduct.id,
@@ -139,7 +157,7 @@ export async function POST(req) {
           });
         }
 
-        // Add log entry
+        // Record stock deduction log
         await tx.inventoryLog.create({
           data: {
             productId,
@@ -156,7 +174,7 @@ export async function POST(req) {
         });
       }
 
-      // Create Order
+      // Create new Order with nested OrderItems
       const newOrder = await tx.order.create({
         data: {
           userId: user.id,
@@ -178,10 +196,10 @@ export async function POST(req) {
       return newOrder;
     });
 
-    // Broadcast SSE update
+    // 5. Broadcast real-time SSE event for order creation
     broadcastSSE("ORDER_CREATED", result);
 
-    // Broadcast low stock alerts
+    // 6. Broadcast real-time alerts for products reaching low stock
     for (const alert of lowStockAlerts) {
       console.log(`[Low-Stock Alert] Product ${alert.name} (${alert.productId}) is low on stock! Current: ${alert.stock}, Threshold: ${alert.lowStockThreshold}`);
       broadcastSSE("LOW_STOCK_ALERT", alert);
