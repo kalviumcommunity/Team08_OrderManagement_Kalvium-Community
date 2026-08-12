@@ -417,3 +417,146 @@ Opens an event-stream connection to receive live updates.
   - `ORDER_UPDATED`: Fired when status changes or cancellation occurs. Contains updated order.
   - `STOCK_UPDATED`: Fired when a product's stock is altered (manual adjustment or cancellation refund). Contains product ID, current stock, and audit log.
   - `LOW_STOCK_ALERT`: Fired when product stock drops below threshold. Contains product info and current stock.
+
+---
+
+### 2.6 Dashboard Reports & Analytics
+
+#### 2.6.1 Retrieve Consolidated Dashboard Reports
+Provides unified metrics, active queues, daily volume counts, and stock alerts.
+
+- **Endpoint**: `GET /api/reports`
+- **Authentication**: JWT Required (`OWNER`, `MANAGER`, or `AUDITOR` roles only)
+- **Response (200 OK)**:
+  ```json
+  {
+    "stats": {
+      "newOrdersCount": 3,
+      "preparingCount": 2,
+      "readyCount": 1,
+      "revenue": 450,
+      "lowStockCount": 1
+    },
+    "activeOrders": [
+      {
+        "id": "order-uuid-1111",
+        "userId": "customer-uuid-2222",
+        "customerName": "John Doe",
+        "status": "PENDING",
+        "createdAt": "2026-08-04T12:00:00.000Z",
+        "items": [
+          {
+            "id": "item-uuid-3333",
+            "productId": "product-uuid-4444",
+            "quantity": 2,
+            "product": {
+              "name": "Default Product",
+              "stock": 10
+            }
+          }
+        ]
+      }
+    ],
+    "dailyVolume": [
+      { "day": "Mon", "count": 2 },
+      { "day": "Tue", "count": 5 }
+    ],
+    "weeklySummary": {
+      "total": 17,
+      "growth": 18.5
+    },
+    "alerts": [
+      {
+        "id": "product-uuid-4444",
+        "product": "Default Product",
+        "stock": 3,
+        "status": "Medium Stock",
+        "tone": "yellow"
+      }
+    ]
+  }
+  ```
+
+---
+
+### 2.7 User Profile
+
+#### 2.7.1 Retrieve User Profile
+Fetches details of the currently authenticated user session.
+
+- **Endpoint**: `GET /api/profile`
+- **Authentication**: JWT Required (Any role)
+- **Response (200 OK)**:
+  ```json
+  {
+    "id": "user-uuid-1234",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "role": "OWNER",
+    "restaurantName": "Licious Grill",
+    "phone": "1234567890",
+    "businessType": "Restaurant",
+    "createdAt": "2026-07-23T09:00:00.000Z"
+  }
+  ```
+
+---
+
+### 2.8 Product Restock & Inventory Stats
+
+#### 2.8.1 Product Restock
+Adjusts/restocks the quantities of a specific product ID.
+
+- **Endpoint**: `POST /api/products/restock`
+- **Authentication**: JWT Required (`OWNER` or `MANAGER` roles only)
+- **Request Body (JSON)**:
+  ```json
+  {
+    "productId": "product-uuid-4444",
+    "quantity": 15
+  }
+  ```
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Product restocked successfully",
+    "product": {
+      "id": "product-uuid-4444",
+      "name": "Default Product",
+      "stock": 25
+    }
+  }
+  ```
+
+---
+
+#### 2.8.2 Retrieve Product stats
+Fetches summary statistics for products inventory levels.
+
+- **Endpoint**: `GET /api/products/stats`
+- **Authentication**: JWT Required (`OWNER`, `MANAGER`, or `AUDITOR` roles only)
+- **Response (200 OK)**:
+  ```json
+  {
+    "totalProducts": 15,
+    "lowStockProductsCount": 2,
+    "outOfStockProductsCount": 1
+  }
+  ```
+
+---
+
+#### 2.8.3 Retrieve Inventory stats
+Fetches logs summary and inventory metrics.
+
+- **Endpoint**: `GET /api/inventory/stats`
+- **Authentication**: JWT Required (`OWNER`, `MANAGER`, or `AUDITOR` roles only)
+- **Response (200 OK)**:
+  ```json
+  {
+    "totalLogs": 128,
+    "restockLogsCount": 42,
+    "salesLogsCount": 86
+  }
+  ```
+

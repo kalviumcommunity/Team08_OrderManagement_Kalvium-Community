@@ -21,6 +21,9 @@ async function main() {
     create: {
       email: "admin@orderflow.com",
       name: "Admin User",
+      restaurantName: "Licious Grill",
+      phone: "1234567890",
+      businessType: "Restaurant",
       passwordHash: adminPasswordHash,
       role: "OWNER",
     },
@@ -32,6 +35,9 @@ async function main() {
     create: {
       email: "customer@orderflow.com",
       name: "Customer User",
+      restaurantName: "N/A",
+      phone: "0987654321",
+      businessType: "Consumer",
       passwordHash: customerPasswordHash,
       role: "CUSTOMER",
     },
@@ -41,6 +47,8 @@ async function main() {
   const product = await prisma.product.create({
     data: {
       name: "Default Product",
+      sku: "DEF-PROD-001",
+      category: "Meat & Grill",
       stock: 10,
     },
   });
